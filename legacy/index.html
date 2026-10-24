@@ -1,0 +1,649 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Zal3a Plant Pots</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Lalezar&display=swap">
+<style>
+/* Layout: sticky header → blob-framed hero → full-bleed snap rail of best sellers → plant picker band → footer.
+   Product view swaps in: photo on a tinted "nursery tag" panel left, choices + care meters right. */
+:root{
+  --bg:#F3F6EC;          /* pale sage paper */
+  --surface:#FFFFFF;
+  --surface-2:#E3ECD6;   /* soft cactus skin */
+  --ink:#1C3123;         /* deep cactus */
+  --ink-soft:#526857;
+  --line:#C9D7BC;
+  --cactus:#3E7C4D;
+  --cactus-deep:#23502F;
+  --bloom:#E9668C;       /* cactus flower pink */
+  --bloom-soft:#FBD5E0;
+  --sun:#F2BE45;
+  --sun-soft:#FAE8B6;
+  --btn-bg:#23502F;
+  --btn-fg:#F3F6EC;
+  --shadow:0 18px 40px -22px rgba(28,49,35,.45);
+  --foot-bg:#23502F; --foot-fg:#F3F6EC;
+  --f-logo:"Bagel Fat One","Bricolage Grotesque",system-ui,sans-serif;
+  --f-display:"Bricolage Grotesque",ui-rounded,system-ui,sans-serif;
+  --f-body:"Figtree",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-ar:"Lalezar","Bagel Fat One",system-ui,sans-serif;
+  --gutter-l:max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r:max(16px, env(safe-area-inset-right, 0px));
+  --max:1200px;
+  --r-lg:28px; --r-md:18px; --r-sm:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111E16; --surface:#1A2B21; --surface-2:#20362A; --ink:#E8F0DF; --ink-soft:#A3B8A6; --line:#2F4A3A;
+    --cactus:#82C28E; --cactus-deep:#A9D9B1; --bloom:#F58FAE; --bloom-soft:#4A2533; --sun:#F2C55A; --sun-soft:#3B3217;
+    --btn-bg:#8FCB9A; --btn-fg:#10200F; --shadow:0 18px 40px -22px rgba(0,0,0,.7); --foot-bg:#1D3A27; --foot-fg:#E8F0DF; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111E16; --surface:#1A2B21; --surface-2:#20362A; --ink:#E8F0DF; --ink-soft:#A3B8A6; --line:#2F4A3A;
+  --cactus:#82C28E; --cactus-deep:#A9D9B1; --bloom:#F58FAE; --bloom-soft:#4A2533; --sun:#F2C55A; --sun-soft:#3B3217;
+  --btn-bg:#8FCB9A; --btn-fg:#10200F; --shadow:0 18px 40px -22px rgba(0,0,0,.7); --foot-bg:#1D3A27; --foot-fg:#E8F0DF; color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+img{max-width:100%;display:block}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--bloom);outline-offset:3px;border-radius:10px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.05;text-wrap:balance;margin:0;letter-spacing:-.02em}
+p{margin:0}
+.wrap{max-width:var(--max);margin-inline:auto;padding-left:var(--gutter-l);padding-right:var(--gutter-r)}
+.eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cactus)}
+.ar{font-family:var(--f-ar);font-weight:400;letter-spacing:0}
+
+/* ---------- header ---------- */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid transparent;transition:border-color .2s}
+.top.scrolled{border-bottom-color:var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:14px}
+.logo{display:flex;align-items:baseline;gap:8px;text-decoration:none}
+.logo b{font-family:var(--f-logo);font-weight:400;font-size:1.9rem;line-height:1;color:var(--cactus-deep);letter-spacing:.01em}
+.logo b span{color:var(--bloom);display:inline-block;transform:rotate(-8deg) translateY(-1px)}
+.logo .ar{font-size:1.2rem;color:var(--ink-soft)}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{text-decoration:none;font-weight:600;font-size:.95rem;padding:8px 12px;border-radius:999px}
+.nav a:hover{background:var(--surface-2)}
+.bag-btn{display:inline-flex;align-items:center;gap:8px;border:0;background:var(--btn-bg);color:var(--btn-fg);font-weight:700;padding:9px 14px 9px 12px;border-radius:999px}
+.bag-btn svg{width:20px;height:20px}
+.bag-count{min-width:22px;height:22px;border-radius:999px;background:var(--bloom);color:#fff;font-size:.78rem;display:inline-grid;place-items:center;padding-inline:5px;font-variant-numeric:tabular-nums}
+.bag-count.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+@media (max-width:640px){.nav{display:none}.bag-btn{margin-left:auto}.bag-btn .lbl{display:none}}
+
+/* ---------- hero ---------- */
+.hero{padding-block:clamp(28px,5vw,64px) clamp(40px,6vw,80px)}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,5vw,64px);align-items:center}
+.hero-copy{display:grid;gap:22px;min-width:0}
+.hero h1{font-size:clamp(2.6rem,6.6vw,5.4rem);font-weight:800;font-variation-settings:"opsz" 96}
+.hero h1 em{font-style:normal;color:var(--cactus);position:relative;white-space:nowrap}
+.hero h1 em::after{content:"";position:absolute;left:-2%;right:-2%;bottom:.04em;height:.2em;background:var(--bloom-soft);z-index:-1;border-radius:999px;transform:rotate(-1.5deg)}
+.hero h1 .face{display:inline-block;color:var(--bloom)}
+.hero-copy > p{font-size:1.14rem;color:var(--ink-soft);max-width:34ch}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:2px solid var(--btn-bg);background:var(--btn-bg);color:var(--btn-fg);font-weight:700;font-size:1rem;padding:14px 22px;border-radius:999px;text-decoration:none;transition:transform .2s cubic-bezier(.3,1.6,.5,1),box-shadow .2s}
+.btn:hover{transform:translateY(-2px) rotate(-1deg);box-shadow:var(--shadow)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--ink)}
+.perks{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:.9rem;color:var(--ink-soft);font-weight:500}
+.perks span{display:inline-flex;align-items:center;gap:7px}
+.perks i{width:8px;height:8px;border-radius:50%;background:var(--cactus);display:inline-block}
+.perks span:nth-child(2) i{background:var(--bloom)}
+.perks span:nth-child(3) i{background:var(--sun)}
+
+.hero-art{position:relative;justify-self:center;width:min(100%,520px);aspect-ratio:1;max-width:100%}
+.blob{position:absolute;inset:0;border-radius:58% 42% 50% 50% / 46% 52% 48% 54%;overflow:hidden;background:var(--surface);box-shadow:var(--shadow);animation:rise .9s cubic-bezier(.3,1.4,.5,1) both}
+.blob img{width:100%;height:100%;object-fit:cover}
+.hero-art::before{content:"";position:absolute;width:44%;aspect-ratio:1;border-radius:50%;background:var(--sun-soft);left:-8%;bottom:-6%;z-index:-1}
+.hero-art::after{content:"";position:absolute;width:26%;aspect-ratio:1;border-radius:50%;background:var(--bloom-soft);right:-4%;top:-5%;z-index:-1}
+.spin-badge{position:absolute;right:-2%;bottom:6%;width:clamp(96px,22%,124px);aspect-ratio:1;border-radius:50%;background:var(--bloom);color:#fff;display:grid;place-items:center;box-shadow:var(--shadow);animation:rise .9s .25s cubic-bezier(.3,1.6,.5,1) both}
+.spin-badge svg{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);animation:spin 18s linear infinite}
+.spin-badge text{fill:#fff;font:700 10.5px var(--f-body);letter-spacing:.22em;text-transform:uppercase}
+.spin-badge .mid{font-family:var(--f-ar);font-size:1.5rem;line-height:1}
+.price-tag{position:absolute;left:2%;top:12%;background:var(--surface);color:var(--ink);border:2px solid var(--ink);border-radius:14px;padding:8px 14px;font-weight:700;font-size:.9rem;transform:rotate(-7deg);box-shadow:4px 4px 0 var(--ink);animation:rise .9s .4s cubic-bezier(.3,1.6,.5,1) both}
+.price-tag small{display:block;font-weight:500;color:var(--ink-soft);font-size:.75rem}
+@keyframes rise{from{opacity:.0;transform:translateY(24px) scale(.92)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:860px){
+  .hero .wrap{grid-template-columns:1fr}
+  .hero-art{width:min(100%,440px)}
+}
+
+/* ---------- section heads ---------- */
+.sec{padding-block:clamp(40px,6vw,72px)}
+.sec-head{display:flex;align-items:end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:26px}
+.sec-head > div:not(.arrows){display:grid;gap:8px;min-width:0}
+.sec-head h2{font-size:clamp(2rem,4.4vw,3.2rem);font-weight:800}
+.sec-head p{color:var(--ink-soft);max-width:46ch}
+.arrows{display:flex;gap:10px}
+.arrow{width:50px;height:50px;border-radius:50%;border:2px solid var(--ink);background:var(--surface);display:grid;place-items:center;transition:transform .2s cubic-bezier(.3,1.6,.5,1),background .2s}
+.arrow:hover:not(:disabled){transform:scale(1.08);background:var(--sun)}
+.arrow:disabled{opacity:.3;cursor:default}
+.arrow svg{width:22px;height:22px}
+
+/* ---------- product rail ---------- */
+.best{background:var(--surface-2);border-radius:clamp(28px,5vw,56px) clamp(28px,5vw,56px) 0 0}
+.rail{display:flex;gap:clamp(14px,2vw,22px);overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;
+  --edge-l:max(var(--gutter-l), calc((100% - var(--max)) / 2 + var(--gutter-l)));
+  --edge-r:max(var(--gutter-r), calc((100% - var(--max)) / 2 + var(--gutter-r)));
+  padding:8px var(--edge-r) 26px var(--edge-l);scroll-padding-inline:var(--edge-l) var(--edge-r);scrollbar-width:none;cursor:grab}
+.rail::-webkit-scrollbar{display:none}
+.rail.dragging{cursor:grabbing;scroll-snap-type:none}
+.rail.dragging .card{pointer-events:none}
+.card{flex:0 0 clamp(228px,68vw,286px);scroll-snap-align:start;position:relative;display:grid;gap:12px;background:var(--surface);border-radius:var(--r-lg);padding:12px 12px 16px;transition:transform .35s cubic-bezier(.3,1.5,.5,1),box-shadow .3s}
+.card:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.card .ph{position:relative;aspect-ratio:4/5;border-radius:20px;overflow:hidden;background:var(--tint,var(--surface-2))}
+.card .ph img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.3,1.5,.5,1)}
+.card:hover .ph img{transform:scale(1.05) rotate(-1.5deg)}
+.badge{position:absolute;left:12px;top:12px;z-index:2;font-size:.74rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:999px;background:var(--sun);color:#2A2005;transform:rotate(-4deg)}
+.badge.pink{background:var(--bloom);color:#fff}
+.badge.green{background:var(--cactus-deep);color:var(--bg)}
+.card .meta{display:flex;align-items:start;justify-content:space-between;gap:10px;padding-inline:4px}
+.card h3{font-size:1.32rem;font-weight:800}
+.card .sub{font-size:.88rem;color:var(--ink-soft);margin-top:3px}
+.card .price{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:1.02rem}
+.card .price small{font-size:.72rem;color:var(--ink-soft);font-weight:600;margin-right:2px}
+.card a.stretch{position:absolute;inset:0;z-index:1;border-radius:var(--r-lg)}
+.quick{position:absolute;right:22px;bottom:96px;z-index:3;width:46px;height:46px;border-radius:50%;border:0;background:var(--btn-bg);color:var(--btn-fg);display:grid;place-items:center;box-shadow:var(--shadow);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.quick:hover{transform:scale(1.12) rotate(90deg)}
+.quick svg{width:20px;height:20px}
+.rail-foot{display:flex;align-items:center;gap:16px;padding-bottom:8px}
+.track{flex:1;height:6px;border-radius:999px;background:color-mix(in srgb,var(--ink) 12%,transparent);overflow:hidden}
+.track span{display:block;height:100%;width:30%;border-radius:999px;background:var(--cactus);transition:transform .15s linear}
+.rail-foot small{color:var(--ink-soft);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ---------- steps / plants ---------- */
+.steps{background:var(--surface-2);padding-top:clamp(20px,3vw,32px)}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.step{background:var(--surface);border-radius:var(--r-md);padding:22px;display:grid;gap:8px;align-content:start}
+.step .n{font-family:var(--f-logo);font-size:2.2rem;line-height:1;color:var(--bloom)}
+.step:nth-child(2) .n{color:var(--cactus)}
+.step:nth-child(3) .n{color:var(--sun)}
+.step h3{font-size:1.25rem;font-weight:700}
+.step p{color:var(--ink-soft);font-size:.95rem}
+@media (max-width:760px){.steps-grid{grid-template-columns:1fr}}
+
+.plants-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.plant{border:2px solid var(--line);border-radius:var(--r-md);padding:20px;display:grid;gap:10px;align-content:start;background:var(--bg)}
+.plant svg{width:64px;height:64px}
+.plant h3{font-size:1.15rem;font-weight:700}
+.plant .latin{font-style:italic;color:var(--ink-soft);font-size:.86rem;margin-top:-6px}
+.plant p{font-size:.92rem;color:var(--ink-soft)}
+@media (max-width:900px){.plants-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:460px){.plants-grid{grid-template-columns:1fr}}
+
+/* ---------- footer ---------- */
+footer{background:var(--foot-bg);color:var(--foot-fg);margin-top:clamp(40px,6vw,72px);border-radius:clamp(28px,5vw,56px) clamp(28px,5vw,56px) 0 0}
+footer .wrap{padding-block:48px 40px;display:flex;flex-wrap:wrap;gap:24px 48px;align-items:end;justify-content:space-between}
+footer .big{font-family:var(--f-logo);font-size:clamp(3.4rem,10vw,7rem);line-height:.9}
+footer .big span{color:var(--bloom)}
+footer p{opacity:.8;max-width:36ch}
+footer .ar{font-size:1.6rem;opacity:1}
+
+/* ---------- product view ---------- */
+.pd{padding-block:20px clamp(40px,6vw,72px)}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.9rem;color:var(--ink-soft);margin-bottom:20px}
+.crumbs a{font-weight:600;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 8px;border-radius:999px;background:var(--surface-2)}
+.crumbs a:hover{background:var(--sun-soft)}
+.crumbs svg{width:16px;height:16px}
+.pd-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(24px,4vw,56px);align-items:start}
+.pd-photo{position:sticky;top:calc(env(safe-area-inset-top,0px) + 86px);border-radius:clamp(24px,4vw,40px);overflow:hidden;background:var(--tint,var(--surface-2));aspect-ratio:1;max-width:100%}
+.pd-photo img{width:100%;height:100%;object-fit:cover;animation:rise .6s cubic-bezier(.3,1.4,.5,1) both}
+.pd-photo .badge{left:18px;top:18px;font-size:.82rem}
+.pd-photo .note{position:absolute;left:16px;right:16px;bottom:16px;background:color-mix(in srgb,var(--surface) 92%,transparent);border-radius:14px;padding:10px 14px;font-size:.84rem;color:var(--ink-soft);backdrop-filter:blur(6px)}
+.pd-info{display:grid;gap:22px;min-width:0}
+.pd-title{display:grid;gap:6px}
+.pd-title h1{font-size:clamp(2.4rem,5vw,3.8rem);font-weight:800}
+.pd-title .ar{font-size:1.5rem;color:var(--bloom);line-height:1.2}
+.pd-price{display:flex;align-items:baseline;gap:10px;font-variant-numeric:tabular-nums}
+.pd-price strong{font-family:var(--f-display);font-size:2rem;font-weight:800}
+.pd-price span{color:var(--ink-soft);font-size:.9rem}
+.pd-desc{font-size:1.06rem;color:var(--ink-soft);max-width:52ch}
+.group{display:grid;gap:10px}
+.group > .lbl{font-weight:700;font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip label{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center;border:2px solid var(--line);border-radius:16px;padding:10px 12px;cursor:pointer;background:var(--surface);transition:border-color .15s,transform .2s cubic-bezier(.3,1.6,.5,1)}
+.chip label:hover{transform:translateY(-2px)}
+.chip svg{grid-row:span 2;width:34px;height:34px}
+.chip b{font-size:.95rem;line-height:1.2}
+.chip small{color:var(--ink-soft);font-size:.8rem;font-variant-numeric:tabular-nums}
+.chip input:checked + label{border-color:var(--cactus);background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--cactus)}
+.chip input:focus-visible + label{outline:3px solid var(--bloom);outline-offset:2px}
+.buy{display:flex;flex-wrap:wrap;gap:12px}
+.qty{display:inline-flex;align-items:center;border:2px solid var(--line);border-radius:999px;background:var(--surface)}
+.qty button{width:46px;height:50px;border:0;background:transparent;font-size:1.3rem;font-weight:700}
+.qty output{min-width:28px;text-align:center;font-weight:700;font-variant-numeric:tabular-nums}
+.buy .btn{flex:1;min-width:200px}
+.ship{font-size:.9rem;color:var(--ink-soft);display:flex;gap:8px;align-items:center}
+.ship i{width:8px;height:8px;border-radius:50%;background:var(--cactus);flex:none}
+
+.tag{position:relative;background:var(--surface);border:2px solid var(--ink);border-radius:18px;padding:20px 20px 18px;box-shadow:5px 5px 0 var(--ink)}
+.tag::before{content:"";position:absolute;right:18px;top:18px;width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);background:var(--bg)}
+.tag h3{font-size:1.1rem;font-weight:800;margin-bottom:12px}
+.specs{display:grid;grid-template-columns:auto 1fr;gap:8px 18px;margin:0;font-size:.95rem}
+.specs dt{color:var(--ink-soft)}
+.specs dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.care{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px;padding-top:16px;border-top:2px dashed var(--line)}
+.meter{display:grid;gap:6px}
+.meter span{font-size:.82rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.dots{display:flex;gap:5px}
+.dots i{width:22px;height:22px;border-radius:50%;background:var(--surface-2);border:2px solid var(--line);transition:background .25s,border-color .25s}
+.dots.sun i.on{background:var(--sun);border-color:var(--sun)}
+.dots.water i{border-radius:50% 0 50% 50%;transform:rotate(-45deg) scale(.86)}
+.dots.water i.on{background:#6CB4D9;border-color:#6CB4D9}
+.meter em{font-style:normal;font-size:.86rem;color:var(--ink-soft)}
+.more{background:var(--surface-2);border-radius:clamp(28px,5vw,56px);padding-block:clamp(32px,5vw,56px) 12px;margin-top:8px}
+@media (max-width:860px){
+  .pd-grid{grid-template-columns:1fr}
+  .pd-photo{position:relative;top:0}
+}
+@media (max-width:420px){.chips{grid-template-columns:1fr}}
+
+/* ---------- bag drawer + toast ---------- */
+.scrim{position:fixed;inset:0;background:rgba(10,20,14,.45);z-index:70;opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:80;width:min(420px,100%);background:var(--bg);display:flex;flex-direction:column;transform:translateX(105%);transition:transform .35s cubic-bezier(.3,1.2,.5,1);
+  padding:calc(env(safe-area-inset-top,0px) + 20px) max(20px, env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 20px) 20px;box-shadow:-20px 0 50px -30px rgba(0,0,0,.5)}
+.drawer.open{transform:none}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.drawer-head h2{font-size:1.8rem;font-weight:800}
+.x{width:42px;height:42px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center}
+.x svg{width:18px;height:18px}
+.lines{flex:1;overflow:auto;display:grid;gap:12px;align-content:start}
+.line{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;background:var(--surface);border-radius:16px;padding:8px}
+.line img{width:64px;height:64px;object-fit:cover;border-radius:12px}
+.line b{display:block;line-height:1.2}
+.line small{color:var(--ink-soft)}
+.line .rm{border:0;background:none;color:var(--ink-soft);font-size:.8rem;text-decoration:underline;padding:4px}
+.line .amt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.empty{text-align:center;color:var(--ink-soft);padding:40px 10px;display:grid;gap:12px;justify-items:center}
+.empty svg{width:90px;height:90px}
+.drawer-foot{border-top:2px dashed var(--line);padding-top:16px;display:grid;gap:12px}
+.total{display:flex;justify-content:space-between;font-weight:700;font-size:1.1rem;font-variant-numeric:tabular-nums}
+.drawer-foot small{color:var(--ink-soft)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);transform:translate(-50%,calc(100% + 60px));visibility:hidden;z-index:90;background:var(--ink);color:var(--bg);font-weight:600;padding:12px 18px;border-radius:999px;box-shadow:var(--shadow);transition:transform .35s cubic-bezier(.3,1.5,.5,1),visibility 0s .35s;max-width:calc(100% - 32px);text-align:center}
+.toast.show{transform:translate(-50%,0);visibility:visible;transition:transform .35s cubic-bezier(.3,1.5,.5,1),visibility 0s}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+
+<!-- shared plant icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-cactus" viewBox="0 0 64 64"><path d="M20 58h24l-3-14H23z" fill="var(--bloom-soft)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><path d="M26 44V22a6 6 0 0 1 12 0v22" fill="var(--cactus)" stroke="var(--ink)" stroke-width="2.5"/><path d="M26 36h-5a4 4 0 0 1-4-4v-6a3 3 0 0 1 6 0v4h3M38 32h4v-6a3 3 0 0 1 6 0v6a5 5 0 0 1-5 5h-5" fill="var(--cactus)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><circle cx="32" cy="13" r="3.5" fill="var(--bloom)" stroke="var(--ink)" stroke-width="2"/></symbol>
+    <symbol id="i-echeveria" viewBox="0 0 64 64"><path d="M20 58h24l-3-14H23z" fill="var(--sun-soft)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><path d="M32 44c-12 0-18-6-18-10 6 0 10 2 12 4-3-6-2-12 0-15 3 3 5 8 6 12 1-4 3-9 6-12 2 3 3 9 0 15 2-2 6-4 12-4 0 4-6 10-18 10z" fill="var(--cactus)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-haworthia" viewBox="0 0 64 64"><path d="M20 58h24l-3-14H23z" fill="var(--surface-2)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><path d="M32 44 22 18l8 14 2-24 2 24 8-14-10 26zM32 44l-16-12 12 8M32 44l16-12-12 8" fill="var(--cactus)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 30h2M34 30h2M30 24h1M33 24h1" stroke="var(--bg)" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-pot" viewBox="0 0 64 64"><path d="M16 26h32l-4 30H20z" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/><circle cx="27" cy="38" r="2" fill="var(--ink)"/><circle cx="37" cy="38" r="2" fill="var(--ink)"/><path d="M28 44q4 3 8 0" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/><circle cx="23" cy="43" r="2.5" fill="var(--bloom)" opacity=".7"/><circle cx="41" cy="43" r="2.5" fill="var(--bloom)" opacity=".7"/></symbol>
+  </defs>
+</svg>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="logo" href="#shop" aria-label="zal3a home"><b>zal<span>3</span>a</b><span class="ar" lang="ar">زلعة</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="#shop" data-scroll="best">Best sellers</a>
+      <a href="#shop" data-scroll="how">How it works</a>
+      <a href="#shop" data-scroll="plants">Plants</a>
+    </nav>
+    <button class="bag-btn" id="bagBtn" type="button" aria-label="Open bag">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+      <span class="lbl">Bag</span><span class="bag-count" id="bagCount">0</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- ================= HOME ================= -->
+  <div id="home">
+    <section class="hero">
+      <div class="wrap">
+        <div class="hero-copy">
+          <span class="eyebrow">Character pots · live mini plants</span>
+          <h1>Tiny plants with <em>big faces</em><span class="face">.</span></h1>
+          <p>Every zal3a pot has a little personality and a little plant living inside. Pick a face, pick a cactus or succulent, and we pot it for you.</p>
+          <div class="cta-row">
+            <button class="btn" type="button" data-scroll="best">Shop best sellers
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+            <button class="btn ghost" type="button" data-scroll="how">How it works</button>
+          </div>
+          <div class="perks"><span><i></i>Potted to order</span><span><i></i>Gift-ready box</span><span><i></i>Drainage hole in every pot</span></div>
+        </div>
+        <div class="hero-art">
+          <div class="blob"><img src="img/duo.webp" alt="Two white ceramic cat pots on a sunny table, one wide-eyed and one laughing, each with a small plant growing from its head" width="1100" height="1100" fetchpriority="high"></div>
+          <a class="price-tag" href="#duo">The Gossip Duo<small>EGP 649 for two</small></a>
+          <div class="spin-badge" aria-hidden="true">
+            <svg viewBox="0 0 100 100"><defs><path id="circ" d="M50 50m-38 0a38 38 0 1 1 76 0a38 38 0 1 1-76 0"/></defs><text><textPath href="#circ">potted by hand · cairo · potted by hand · cairo ·</textPath></text></svg>
+            <span class="mid" lang="ar">زلعة</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="best sec" id="best" aria-labelledby="bestTitle">
+      <div class="wrap sec-head">
+        <div>
+          <span class="eyebrow">Most adopted this month</span>
+          <h2 id="bestTitle">Best sellers</h2>
+        </div>
+        <div class="arrows">
+          <button class="arrow" type="button" data-dir="-1" data-rail="bestRail" aria-label="Previous pots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+          <button class="arrow" type="button" data-dir="1" data-rail="bestRail" aria-label="Next pots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+      <div class="rail" id="bestRail" role="list"></div>
+      <div class="wrap rail-foot"><div class="track"><span id="bestTrack"></span></div><small id="bestCount">6 pots</small></div>
+    </section>
+
+    <section class="steps sec" id="how" aria-labelledby="howTitle">
+      <div class="wrap">
+        <div class="sec-head"><div><span class="eyebrow">How it works</span><h2 id="howTitle">Three steps to a new desk buddy</h2></div></div>
+        <div class="steps-grid">
+          <div class="step"><span class="n">1</span><h3>Pick a face</h3><p>Sleepy, giggly, wide-eyed or a little dino. Each pot is glazed ceramic or soft-touch resin with a drainage hole.</p></div>
+          <div class="step"><span class="n">2</span><h3>Pick who lives inside</h3><p>Choose a mini cactus, an echeveria rosette, a zebra haworthia, or take the pot empty for your own plant.</p></div>
+          <div class="step"><span class="n">3</span><h3>We pot it and ship it</h3><p>We plant it in gritty cactus mix, top it with pebbles and pack it in a gift box with a care card.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="plants" aria-labelledby="plantsTitle">
+      <div class="wrap">
+        <div class="sec-head"><div><span class="eyebrow">Low effort, high cute</span><h2 id="plantsTitle">Plants we pot</h2></div><p>All of them love a sunny windowsill and forgive you for forgetting to water.</p></div>
+        <div class="plants-grid" id="plantsGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= PRODUCT ================= -->
+  <div id="product" hidden>
+    <section class="pd">
+      <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="#shop" data-scroll="best"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>All pots</a>
+          <span aria-hidden="true">/</span><span id="pdCrumb">Cats</span>
+        </nav>
+        <div class="pd-grid">
+          <div class="pd-photo" id="pdPhoto">
+            <span class="badge" id="pdBadge"></span>
+            <img id="pdImg" src="img/bisbis.webp" alt="" width="1100" height="1100">
+            <p class="note" id="pdNote"></p>
+          </div>
+          <div class="pd-info">
+            <div class="pd-title">
+              <span class="eyebrow" id="pdKind"></span>
+              <h1 id="pdName"></h1>
+              <span class="ar" lang="ar" id="pdAr"></span>
+            </div>
+            <div class="pd-price"><strong id="pdPrice"></strong><span id="pdPriceNote"></span></div>
+            <p class="pd-desc" id="pdDesc"></p>
+
+            <fieldset class="group" style="border:0;padding:0;margin:0">
+              <legend class="lbl" style="padding:0;margin-bottom:10px">Who lives inside?</legend>
+              <div class="chips" id="pdPlants"></div>
+            </fieldset>
+
+            <div class="buy">
+              <div class="qty" role="group" aria-label="Quantity">
+                <button type="button" id="qMinus" aria-label="Fewer">−</button>
+                <output id="qVal" aria-live="polite">1</output>
+                <button type="button" id="qPlus" aria-label="More">+</button>
+              </div>
+              <button class="btn" type="button" id="pdAdd">Add to bag</button>
+            </div>
+            <p class="ship"><i></i>Cairo & Giza delivery in 2–3 days. Free over EGP 800.</p>
+
+            <div class="tag">
+              <h3>Plant tag</h3>
+              <dl class="specs" id="pdSpecs"></dl>
+              <div class="care">
+                <div class="meter"><span>Sun</span><div class="dots sun" id="sunDots"></div><em id="sunTxt"></em></div>
+                <div class="meter"><span>Water</span><div class="dots water" id="waterDots"></div><em id="waterTxt"></em></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="more" aria-labelledby="moreTitle">
+      <div class="wrap sec-head">
+        <div><span class="eyebrow">Shelf mates</span><h2 id="moreTitle">They get along well</h2></div>
+        <div class="arrows">
+          <button class="arrow" type="button" data-dir="-1" data-rail="moreRail" aria-label="Previous pots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+          <button class="arrow" type="button" data-dir="1" data-rail="moreRail" aria-label="Next pots"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </div>
+      </div>
+      <div class="rail" id="moreRail" role="list"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="big">zal<span>3</span>a</div>
+      <p class="ar" lang="ar">زرعة صغيرة، ضحكة كبيرة</p>
+    </div>
+    <p>Character pots with live cacti and succulents, potted by hand in Cairo. Every pot has a drainage hole and comes with a care card.</p>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Your bag" aria-hidden="true">
+  <div class="drawer-head"><h2>Your bag</h2><button class="x" type="button" id="closeBag" aria-label="Close bag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="lines" id="lines"></div>
+  <div class="drawer-foot">
+    <div class="total"><span>Subtotal</span><span id="subtotal">EGP 0</span></div>
+    <small id="freeShip"></small>
+    <button class="btn" type="button" id="checkout">Checkout</button>
+  </div>
+</aside>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+  const PLANTS = {
+    cactus:    { name:"Mini cactus", latin:"Mammillaria", delta:0,   sun:3, water:1, icon:"i-cactus",
+                 blurb:"A round little cactus that flowers pink in spring. The easiest roommate you will ever have." },
+    echeveria: { name:"Echeveria rosette", latin:"Echeveria elegans", delta:30, sun:3, water:1, icon:"i-echeveria",
+                 blurb:"A soft blue-green rosette shaped like a flower. Plump leaves store water for weeks." },
+    haworthia: { name:"Zebra haworthia", latin:"Haworthiopsis fasciata", delta:45, sun:2, water:1, icon:"i-haworthia",
+                 blurb:"Striped and spiky but harmless. Happy with bright indirect light, so it suits desks." },
+    empty:     { name:"Pot only", latin:"Bring your own plant", delta:-90, sun:0, water:0, icon:"i-pot",
+                 blurb:"Just the pot, with a drainage hole and a saucer plug. Ready for a plant you already love." }
+  };
+  const SUN = ["Your call","Bright, indirect light","Bright light, some direct sun","Full sun, 4+ hours a day"];
+  const WATER = ["Your call","Every 2–3 weeks","Every 10–14 days","Weekly"];
+
+  const PRODUCTS = [
+    { id:"duo", name:"The Gossip Duo", ar:"التوأم الرغّاي", kind:"Cat pots · set of 2", price:649, badge:["Best seller","pink"], tint:"var(--bloom-soft)",
+      img:"img/duo.webp", pos:"50% 60%", plant:"cactus",
+      desc:"One cat just heard the news, the other can't stop laughing. A pair of glazed ceramic cat pots that look best side by side on a windowsill.",
+      specs:[["Height","14 cm each"],["Opening","8.5 cm"],["Material","Glazed ceramic"],["Drainage","Hole + rubber plug"],["In the box","2 pots, 2 plants, care card"]] },
+    { id:"bisbis", name:"Bisbis", ar:"بسبس", kind:"Cat pot", price:349, badge:["Big eyes","yellow"], tint:"var(--surface-2)",
+      img:"img/bisbis.webp", pos:"42% 55%", plant:"echeveria",
+      desc:"Huge sparkly eyes and pink cheeks. Bisbis looks at you like you just opened a can of tuna.",
+      specs:[["Height","14 cm"],["Opening","8.5 cm"],["Material","Glazed ceramic"],["Drainage","Hole + rubber plug"],["Weight","420 g"]] },
+    { id:"dino", name:"Dodo the Dino", ar:"دودو", kind:"Dino pot", price:399, badge:["New","green"], tint:"var(--sun-soft)",
+      img:"img/dino.webp", pos:"50% 55%", plant:"echeveria",
+      desc:"A chubby sage-green dinosaur with stubby arms and a spiky tail. Soft matte finish that feels like a pebble.",
+      specs:[["Height","11 cm"],["Opening","9 cm"],["Material","Matte resin"],["Drainage","Hole + rubber plug"],["Weight","310 g"]] },
+    { id:"dahka", name:"Dahka", ar:"ضحكة", kind:"Cat pot", price:349, badge:["Fan favourite","pink"], tint:"var(--bloom-soft)",
+      img:"img/dahka.webp", pos:"48% 55%", plant:"cactus",
+      desc:"Laughing so hard its eyes closed. Dahka is the pot for anyone who needs a small daily giggle.",
+      specs:[["Height","14 cm"],["Opening","8.5 cm"],["Material","Glazed ceramic"],["Drainage","Hole + rubber plug"],["Weight","420 g"]] },
+    { id:"twinkle", name:"Twinkle", ar:"تونكل", kind:"Buddy pot", price:279, badge:["Pocket size","yellow"], tint:"var(--surface-2)",
+      img:"img/twinkle.webp", pos:"50% 50%", plant:"haworthia",
+      desc:"A palm-sized pebble buddy with little brown boots, giving itself a hug. Small enough for a bookshelf gap.",
+      specs:[["Height","8 cm"],["Opening","6.5 cm"],["Material","Cement-resin blend"],["Drainage","Hole"],["Weight","190 g"]] },
+    { id:"nono", name:"Nono", ar:"نونو", kind:"Cat pot", price:349, badge:["Calm vibes","green"], tint:"var(--sun-soft)",
+      img:"img/nono.webp", pos:"45% 60%", plant:"haworthia",
+      desc:"Eyes closed, lashes out, totally at peace. Nono is the bedside-table cat that never wakes you up.",
+      specs:[["Height","14 cm"],["Opening","8.5 cm"],["Material","Glazed ceramic"],["Drainage","Hole + rubber plug"],["Weight","420 g"]] }
+  ];
+  const byId = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
+  const fmt = n => "EGP " + n.toLocaleString("en-US");
+  const $ = s => document.querySelector(s);
+
+  /* ---------- cards ---------- */
+  function cardHTML(p){
+    const pl = PLANTS[p.plant];
+    return `<article class="card" role="listitem" style="--tint:${p.tint}">
+      <div class="ph"><span class="badge ${p.badge[1]==='pink'?'pink':p.badge[1]==='green'?'green':''}">${p.badge[0]}</span>
+        <img src="${p.img}" alt="${p.name} ${p.kind.toLowerCase()}" loading="lazy" width="1100" height="1100" style="object-position:${p.pos}" draggable="false"></div>
+      <div class="meta"><div><h3>${p.name}</h3><p class="sub">${p.kind} · with ${pl.name.toLowerCase()}</p></div>
+        <span class="price"><small>EGP</small>${p.price}</span></div>
+      <a class="stretch" href="#${p.id}" aria-label="View ${p.name}"></a>
+      <button class="quick" type="button" data-add="${p.id}" aria-label="Add ${p.name} to bag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    </article>`;
+  }
+  $("#bestRail").innerHTML = PRODUCTS.map(cardHTML).join("");
+  $("#bestCount").textContent = PRODUCTS.length + " pots";
+
+  $("#plantsGrid").innerHTML = ["cactus","echeveria","haworthia","empty"].map(k => {
+    const p = PLANTS[k];
+    return `<div class="plant"><svg aria-hidden="true"><use href="#${p.icon}"/></svg><h3>${p.name}</h3><p class="latin">${p.latin}</p><p>${p.blurb}</p></div>`;
+  }).join("");
+
+  /* ---------- rails: arrows, drag, progress ---------- */
+  function setupRail(rail, trackEl){
+    const arrows = document.querySelectorAll(`.arrow[data-rail="${rail.id}"]`);
+    const update = () => {
+      const max = rail.scrollWidth - rail.clientWidth;
+      const ratio = max > 0 ? rail.scrollLeft / max : 0;
+      arrows.forEach(a => { a.disabled = (+a.dataset.dir < 0 && rail.scrollLeft < 4) || (+a.dataset.dir > 0 && rail.scrollLeft > max - 4); });
+      if (trackEl){
+        const w = Math.max(.18, rail.clientWidth / rail.scrollWidth);
+        trackEl.style.width = (w*100) + "%";
+        trackEl.style.transform = `translateX(${ratio * (1/w - 1) * 100}%)`;
+      }
+    };
+    arrows.forEach(a => a.addEventListener("click", () => {
+      const card = rail.querySelector(".card");
+      const step = card ? card.getBoundingClientRect().width + parseFloat(getComputedStyle(rail).columnGap || 16) : 300;
+      rail.scrollBy({ left: +a.dataset.dir * step * (rail.clientWidth > 900 ? 2 : 1), behavior:"smooth" });
+    }));
+    rail.addEventListener("scroll", update, { passive:true });
+    window.addEventListener("resize", update);
+    // mouse drag (touch uses native scrolling)
+    let down = false, startX = 0, startL = 0, moved = false;
+    rail.addEventListener("pointerdown", e => { if (e.pointerType !== "mouse" || e.button !== 0 || e.target.closest("button")) return; down = true; moved = false; startX = e.clientX; startL = rail.scrollLeft; });
+    window.addEventListener("pointermove", e => { if (!down) return; const dx = e.clientX - startX; if (Math.abs(dx) > 6){ moved = true; rail.classList.add("dragging"); } if (moved) rail.scrollLeft = startL - dx; });
+    window.addEventListener("pointerup", () => { if (!down) return; down = false; if (moved){ rail.classList.remove("dragging"); const snapTo = rail.scrollLeft; rail.scrollTo({left:snapTo}); } });
+    rail.addEventListener("click", e => { if (moved){ e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+    update();
+    return update;
+  }
+  const updBest = setupRail($("#bestRail"), $("#bestTrack"));
+  const updMore = setupRail($("#moreRail"), null);
+
+  /* ---------- bag ---------- */
+  let bag = [];
+  try { bag = JSON.parse(localStorage.getItem("zal3a-bag") || "[]"); } catch(e){ bag = []; }
+  bag = bag.filter(l => byId[l.id] && PLANTS[l.plant]);
+  const save = () => { try { localStorage.setItem("zal3a-bag", JSON.stringify(bag)); } catch(e){} };
+  const unit = l => byId[l.id].price + PLANTS[l.plant].delta;
+
+  function renderBag(bump){
+    const count = bag.reduce((s,l) => s + l.qty, 0);
+    const c = $("#bagCount"); c.textContent = count;
+    if (bump){ c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop"); }
+    const sub = bag.reduce((s,l) => s + unit(l)*l.qty, 0);
+    $("#subtotal").textContent = fmt(sub);
+    $("#freeShip").textContent = sub === 0 ? "" : sub >= 800 ? "Free delivery unlocked for Cairo & Giza." : `Add ${fmt(800 - sub)} more for free delivery.`;
+    $("#checkout").disabled = count === 0;
+    $("#lines").innerHTML = bag.length ? bag.map((l,i) => {
+      const p = byId[l.id];
+      return `<div class="line"><img src="${p.img}" alt="" style="object-position:${p.pos}"><div><b>${p.name}</b><small>${PLANTS[l.plant].name} · ×${l.qty}</small><br><button class="rm" type="button" data-rm="${i}">Remove</button></div><span class="amt">${fmt(unit(l)*l.qty)}</span></div>`;
+    }).join("") : `<div class="empty"><svg aria-hidden="true"><use href="#i-pot"/></svg><p>Your bag is empty.<br>Every pot is waiting for a home.</p></div>`;
+  }
+  function add(id, plant, qty){
+    const ex = bag.find(l => l.id === id && l.plant === plant);
+    if (ex) ex.qty += qty; else bag.push({ id, plant, qty });
+    save(); renderBag(true);
+    toast(`${byId[id].name} with ${PLANTS[plant].name.toLowerCase()} added to your bag`);
+  }
+  let tt;
+  function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 2400); }
+  function openBag(o){ $("#drawer").classList.toggle("open", o); $("#scrim").classList.toggle("open", o); $("#drawer").setAttribute("aria-hidden", String(!o)); if (o) $("#closeBag").focus(); }
+  $("#bagBtn").addEventListener("click", () => openBag(true));
+  $("#closeBag").addEventListener("click", () => openBag(false));
+  $("#scrim").addEventListener("click", () => openBag(false));
+  document.addEventListener("keydown", e => { if (e.key === "Escape") openBag(false); });
+  $("#lines").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (!b) return; bag.splice(+b.dataset.rm, 1); save(); renderBag(); });
+  $("#checkout").addEventListener("click", () => toast("Checkout isn't connected yet. This is a design preview."));
+  document.addEventListener("click", e => { const b = e.target.closest("[data-add]"); if (!b) return; e.preventDefault(); const p = byId[b.dataset.add]; add(p.id, p.plant, 1); });
+  renderBag();
+
+  /* ---------- product view ---------- */
+  let cur = null, qty = 1;
+  function dots(el, n){ el.innerHTML = [1,2,3].map(i => `<i class="${i<=n?'on':''}"></i>`).join(""); }
+  function setPlant(k){
+    const pl = PLANTS[k], p = cur;
+    $("#pdPrice").textContent = fmt(p.price + pl.delta);
+    $("#pdPriceNote").textContent = k === "empty" ? "pot only" : `with ${pl.name.toLowerCase()}`;
+    dots($("#sunDots"), pl.sun); dots($("#waterDots"), pl.water);
+    $("#sunTxt").textContent = SUN[pl.sun]; $("#waterTxt").textContent = WATER[pl.water];
+  }
+  function showProduct(p){
+    cur = p; qty = 1; $("#qVal").textContent = 1;
+    document.title = p.name + " · Zal3a Plant Pots";
+    $("#pdPhoto").style.setProperty("--tint", p.tint);
+    const img = $("#pdImg"); img.src = p.img; img.alt = `${p.name}, ${p.kind.toLowerCase()}`; img.style.objectPosition = p.pos;
+    img.style.animation = "none"; void img.offsetWidth; img.style.animation = "";
+    const b = $("#pdBadge"); b.textContent = p.badge[0]; b.className = "badge " + (p.badge[1]==="pink"?"pink":p.badge[1]==="green"?"green":"");
+    $("#pdKind").textContent = p.kind; $("#pdName").textContent = p.name; $("#pdAr").textContent = p.ar;
+    $("#pdCrumb").textContent = p.name; $("#pdDesc").textContent = p.desc;
+    const styled = { duo:"microgreens and clover", bisbis:"clover", dahka:"clover", nono:"cat grass", dino:"cut flowers", twinkle:"daisies" }[p.id] || "greenery";
+    $("#pdNote").textContent = `Photo shows the pot styled with ${styled}. Yours arrives with the plant you choose.`;
+    $("#pdSpecs").innerHTML = p.specs.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+    $("#pdPlants").innerHTML = Object.entries(PLANTS).map(([k,pl]) => `
+      <div class="chip"><input type="radio" name="plant" id="pl-${k}" value="${k}" ${k===p.plant?"checked":""}>
+      <label for="pl-${k}"><svg aria-hidden="true"><use href="#${pl.icon}"/></svg><b>${pl.name}</b><small>${pl.delta===0?"Included":(pl.delta>0?"+ ":"− ")+fmt(Math.abs(pl.delta))}</small></label></div>`).join("");
+    setPlant(p.plant);
+    $("#moreRail").innerHTML = PRODUCTS.filter(x => x.id !== p.id).map(cardHTML).join("");
+    $("#moreRail").scrollLeft = 0; updMore();
+  }
+  $("#pdPlants").addEventListener("change", e => setPlant(e.target.value));
+  $("#qMinus").addEventListener("click", () => { qty = Math.max(1, qty-1); $("#qVal").textContent = qty; });
+  $("#qPlus").addEventListener("click", () => { qty = Math.min(9, qty+1); $("#qVal").textContent = qty; });
+  $("#pdAdd").addEventListener("click", () => { const k = (document.querySelector('input[name="plant"]:checked')||{}).value || cur.plant; add(cur.id, k, qty); });
+
+  /* ---------- routing (#productId opens details, anything else is home) ---------- */
+  let pendingScroll = null;
+  function route(){
+    const id = location.hash.slice(1);
+    const p = byId[id];
+    $("#home").hidden = !!p; $("#product").hidden = !p;
+    if (p){ showProduct(p); window.scrollTo({ top:0, behavior:"instant" }); }
+    else {
+      document.title = "Zal3a Plant Pots";
+      updBest();
+      if (pendingScroll){ const t = document.getElementById(pendingScroll); pendingScroll = null; requestAnimationFrame(() => t && t.scrollIntoView({ behavior:"smooth" })); }
+    }
+  }
+  document.addEventListener("click", e => {
+    const el = e.target.closest("[data-scroll]"); if (!el) return;
+    e.preventDefault(); openBag(false);
+    const target = el.dataset.scroll;
+    if (!$("#home").hidden){ document.getElementById(target).scrollIntoView({ behavior:"smooth" }); }
+    else { pendingScroll = target; if (location.hash === "#shop") route(); else location.hash = "shop"; }
+  });
+  window.addEventListener("hashchange", route);
+  window.addEventListener("scroll", () => $("#top").classList.toggle("scrolled", scrollY > 8), { passive:true });
+  route();
+})();
+</script>
+
+</body></html>
