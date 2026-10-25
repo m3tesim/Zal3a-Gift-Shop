@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useI18n } from "../I18nProvider";
 import { PlantIcon, SocialIcon } from "../icons";
-import { useShop, type Order } from "@/lib/store";
-import { PLANTS, PRODUCT_BY_ID } from "@/lib/products";
+import { useShop } from "@/lib/store";
+import type { Order } from "@/lib/orders";
+import type { Locale } from "@/lib/i18n";
 import { WHATSAPP_NUMBER } from "@/lib/site";
 import { formatPrice, getDict } from "@/lib/i18n";
 
@@ -27,6 +28,8 @@ function Confetti() {
   );
 }
 
+const plantNames = (item: Order["items"][number], l: Locale) => item.plants.map((p) => p.name[l]).join(" + ");
+
 // The message is written in the order's language so the shop sees what the customer saw.
 function whatsappText(o: Order) {
   const t = getDict(o.locale);
@@ -34,7 +37,7 @@ function whatsappText(o: Order) {
   const rows = [
     t.thanks.msgIntro(o.number),
     "",
-    ...o.lines.map((l) => `• ${l.qty} × ${PRODUCT_BY_ID[l.id]?.name[L]} (${PLANTS[l.plant].name[L]}) = ${formatPrice(l.unit * l.qty, L)}`),
+    ...o.items.map((i) => `• ${i.qty} × ${i.name[L]} (${plantNames(i, L)}) = ${formatPrice(i.unit * i.qty, L)}`),
     `${t.checkout.delivery}: ${o.delivery ? formatPrice(o.delivery, L) : t.checkout.freeDelivery}`,
     `${t.checkout.total}: ${formatPrice(o.total, L)}`,
     "",
@@ -66,7 +69,7 @@ export function ThankYou() {
   if (!order) {
     return (
       <div className="sticker mx-auto mt-10 grid max-w-md justify-items-center gap-4 p-10 text-center">
-        <PlantIcon plant="empty" className="size-24" />
+        <PlantIcon icon="pot" className="size-24" />
         <p className="font-head text-2xl">{t.thanks.none}</p>
         <Link href={`/${locale}#shop`} className="btn btn-pink">
           {t.thanks.keep}
@@ -82,7 +85,7 @@ export function ThankYou() {
       <Confetti />
       <div className="mx-auto grid max-w-3xl gap-6">
         <div className="sticker relative grid animate-rise justify-items-center gap-4 bg-sun-soft p-8 text-center sm:p-12">
-          <PlantIcon plant="cactus" className="size-28 animate-wiggle" />
+          <PlantIcon icon="cactus" className="size-28 animate-wiggle" />
           <span className="eyebrow">{t.thanks.eyebrow}</span>
           <h1 className="font-head text-[clamp(2.4rem,6vw,4rem)] font-extrabold">{t.thanks.title(order.contact.name.split(" ")[0])}</h1>
           <p className="text-lg text-ink-soft">{t.thanks.sub}</p>
@@ -132,12 +135,12 @@ export function ThankYou() {
 
         <div className="sticker grid gap-3 p-5">
           <ul className="grid gap-2">
-            {order.lines.map((l) => (
-              <li key={`${l.id}-${l.plant}`} className="flex justify-between gap-3">
+            {order.items.map((i, k) => (
+              <li key={k} className="flex justify-between gap-3">
                 <span>
-                  {l.qty} × {PRODUCT_BY_ID[l.id]?.name[locale]} <small className="text-ink-soft">({PLANTS[l.plant].name[locale]})</small>
+                  {i.qty} × {i.name[locale]} <small className="text-ink-soft">({plantNames(i, locale)})</small>
                 </span>
-                <span className="font-bold tabular-nums">{formatPrice(l.unit * l.qty, locale)}</span>
+                <span className="font-bold tabular-nums">{formatPrice(i.unit * i.qty, locale)}</span>
               </li>
             ))}
           </ul>

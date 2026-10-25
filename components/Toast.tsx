@@ -25,7 +25,7 @@ export function Toast() {
           key={toast.id}
           className="flex animate-rise items-center gap-2 rounded-full border-[3px] border-ink bg-lime px-4 py-2 font-extrabold shadow-pop"
         >
-          <PlantIcon plant="cactus" className="size-8 shrink-0 animate-wiggle" />
+          <PlantIcon icon="cactus" className="size-8 shrink-0 animate-wiggle" />
           {toast.message}
         </p>
       )}

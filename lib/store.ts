@@ -1,28 +1,12 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { PLANTS, PRODUCT_BY_ID, unitPrice, type PlantKey } from "./products";
-import type { Governorate } from "./site";
-import type { Locale } from "./i18n";
+import { MAX_QTY, comboKey } from "./catalog";
+import type { Order } from "./orders";
 
-export type CartLine = { id: string; plant: PlantKey; qty: number };
-export type WrapKey = "kraft" | "confetti" | "ribbon";
-export type PaymentKey = "cod" | "card" | "wallet";
+/** One cart line = a pot with a plant chosen for each of its slots. */
+export type CartLine = { id: string; plants: string[]; qty: number };
 
-export type Order = {
-  number: string;
-  createdAt: string;
-  locale: Locale;
-  lines: (CartLine & { unit: number })[];
-  subtotal: number;
-  delivery: number;
-  total: number;
-  contact: { name: string; phone: string; email: string };
-  gift: null | { name: string; phone: string; wrap: WrapKey; note: string; hidePrices: boolean };
-  address: { governorate: Governorate; area: string; street: string; apartment: string; date: string; notes: string };
-  payment: PaymentKey;
-};
-
-export const MAX_QTY = 9;
+const sameLine = (l: CartLine, id: string, plants: string[]) => l.id === id && comboKey(l.plants) === comboKey(plants);
 
 type ShopState = {
   hydrated: boolean;
@@ -31,9 +15,11 @@ type ShopState = {
   cartOpen: boolean;
   toast: { id: number; message: string } | null;
 
-  add: (id: string, plant: PlantKey, qty?: number) => void;
-  setQty: (index: number, qty: number) => void;
+  add: (id: string, plants: string[], qty?: number, max?: number) => void;
+  setQty: (index: number, qty: number, max?: number) => void;
   remove: (index: number) => void;
+  /** Drop lines the shop can't sell any more, and clamp quantities to stock. */
+  prune: (check: (line: CartLine) => number) => void;
   placeOrder: (order: Order) => void;
   setCartOpen: (open: boolean) => void;
   showToast: (message: string) => void;
@@ -49,22 +35,26 @@ export const useShop = create<ShopState>()(
       cartOpen: false,
       toast: null,
 
-      add: (id, plant, qty = 1) =>
+      add: (id, plants, qty = 1, max = MAX_QTY) =>
         set((s) => {
-          const i = s.lines.findIndex((l) => l.id === id && l.plant === plant);
-          if (i === -1) return { lines: [...s.lines, { id, plant, qty: Math.min(qty, MAX_QTY) }] };
-          return {
-            lines: s.lines.map((l, j) => (j === i ? { ...l, qty: Math.min(l.qty + qty, MAX_QTY) } : l)),
-          };
+          const i = s.lines.findIndex((l) => sameLine(l, id, plants));
+          if (i === -1) return { lines: [...s.lines, { id, plants, qty: Math.min(qty, max) }] };
+          return { lines: s.lines.map((l, j) => (j === i ? { ...l, qty: Math.min(l.qty + qty, max) } : l)) };
         }),
-      setQty: (index, qty) =>
+      setQty: (index, qty, max = MAX_QTY) =>
         set((s) => ({
           lines:
             qty < 1
               ? s.lines.filter((_, j) => j !== index)
-              : s.lines.map((l, j) => (j === index ? { ...l, qty: Math.min(qty, MAX_QTY) } : l)),
+              : s.lines.map((l, j) => (j === index ? { ...l, qty: Math.min(qty, max) } : l)),
         })),
       remove: (index) => set((s) => ({ lines: s.lines.filter((_, j) => j !== index) })),
+      prune: (check) =>
+        set((s) => {
+          const lines = s.lines.map((l) => ({ ...l, qty: Math.min(l.qty, check(l)) })).filter((l) => l.qty > 0);
+          const changed = lines.length !== s.lines.length || lines.some((l, i) => l.qty !== s.lines[i].qty);
+          return changed ? { lines } : s;
+        }),
       placeOrder: (order) => set({ lastOrder: order, lines: [], cartOpen: false }),
       setCartOpen: (cartOpen) => set({ cartOpen }),
       showToast: (message) => set({ toast: { id: Date.now(), message } }),
@@ -72,14 +62,15 @@ export const useShop = create<ShopState>()(
     }),
     {
       name: "zal3a-shop",
-      version: 1,
+      version: 2, // v1 carts had a single plant per line; they're dropped on upgrade
       storage: createJSONStorage(() => window.localStorage), // throws on the server, which persist treats as "no storage"
       skipHydration: true, // rehydrated by I18nProvider after mount, so SSR markup matches
       partialize: (s) => ({ lines: s.lines, lastOrder: s.lastOrder }),
+      migrate: () => ({ lines: [], lastOrder: null }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<ShopState>;
-        const lines = (p.lines ?? []).filter((l) => PRODUCT_BY_ID[l.id] && PLANTS[l.plant] && l.qty > 0);
-        return { ...current, lines, lastOrder: p.lastOrder ?? null };
+        const lines = (p.lines ?? []).filter((l) => typeof l.id === "string" && Array.isArray(l.plants) && l.qty > 0);
+        return { ...current, lines, lastOrder: p.lastOrder?.items ? p.lastOrder : null };
       },
       onRehydrateStorage: () => () => useShop.setState({ hydrated: true }),
     },
@@ -87,4 +78,3 @@ export const useShop = create<ShopState>()(
 );
 
 export const cartCount = (lines: CartLine[]) => lines.reduce((n, l) => n + l.qty, 0);
-export const cartSubtotal = (lines: CartLine[]) => lines.reduce((n, l) => n + unitPrice(l.id, l.plant) * l.qty, 0);

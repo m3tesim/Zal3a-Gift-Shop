@@ -68,6 +68,7 @@ export const ar: Dict = {
     match: "لقيناها!",
     add: "ضيف للشنطة",
     another: "وريني واحدة تانية",
+    comesWith: (p: string) => `جاية مع ${p}`,
     view: "اتعرف عليها",
   },
   shop: {
@@ -77,6 +78,8 @@ export const ar: Dict = {
     quickAdd: (name: string) => `ضيف ${name} للشنطة`,
     view: (name: string) => `شوف ${name}`,
     with: (plant: string) => `مع ${plant}`,
+    soldOut: "خلصت",
+    off: (n: number) => `خصم ${n}%`,
   },
   steps: {
     eyebrow: "سهلة خالص",
@@ -94,6 +97,14 @@ export const ar: Dict = {
     sub: "كلهم بيحبوا الشباك المشمس وبيسامحوك لو نسيت تسقيهم.",
     sun: "شمس",
     water: "مية",
+    cta: "اختار لها قصرية",
+  },
+  plantPage: {
+    eyebrow: "بروفايل شريك السكن",
+    pickPot: "اختار القصرية اللي هتسكن فيها",
+    pickPotSub: "كل قصرية هنا هتيجي والزرعة دي جواها.",
+    noPots: "مفيش قصاري متاحة دلوقتي.",
+    care: "كارت العناية",
   },
   social: {
     eyebrow: "تعالى سلّم علينا",
@@ -112,6 +123,10 @@ export const ar: Dict = {
   product: {
     allPots: "كل القصاري",
     whoInside: "مين ساكن جوه؟",
+    whoInsideSlot: (slot: string) => `مين ساكن في ${slot}؟`,
+    soldOut: "خلصت",
+    onlyLeft: (n: number) => `فاضل ${n} بس!`,
+    combo: "التشكيلة بتاعتك",
     included: "متضمنة",
     qty: "الكمية",
     fewer: "أقل",
@@ -209,6 +224,9 @@ export const ar: Dict = {
       recipientPhone: "اكتب رقم موبايله لو سمحت",
       area: "اكتب المنطقة",
       address: "اكتب الشارع ورقم العمارة",
+      stock: (item: string) => `معلش! ${item} قرب يخلص. حدّثنا المحل، راجع شنطتك لو سمحت.`,
+      unavailable: (item: string) => `${item} مبقاش متاح. شيله من الشنطة لو سمحت.`,
+      server: "حصلت مشكلة. جرب تاني لو سمحت.",
     },
   },
   thanks: {

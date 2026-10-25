@@ -31,6 +31,7 @@
   --animate-spin-slow: spin-slow 18s linear infinite;
   --animate-pop: pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
   --animate-rise: rise 0.7s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+  --animate-fade: fade 0.35s ease-out both;
 
   @keyframes wiggle {
     0%, 100% { transform: rotate(-3deg); }
@@ -53,6 +54,9 @@
   @keyframes confetti {
     0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
     100% { transform: translateY(105vh) rotate(720deg); opacity: 0.9; }
+  }
+  @keyframes fade {
+    from { opacity: 0; transform: scale(1.02); }
   }
   @keyframes rise {
     from { opacity: 0; transform: translateY(24px) scale(0.94); }

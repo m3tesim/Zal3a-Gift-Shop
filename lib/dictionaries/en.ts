@@ -67,6 +67,7 @@ export const en = {
     match: "It's a match!",
     add: "Add to bag",
     another: "Show me another",
+    comesWith: (p: string) => `Comes with ${p}`,
     view: "Meet them",
   },
   shop: {
@@ -76,6 +77,8 @@ export const en = {
     quickAdd: (name: string) => `Add ${name} to bag`,
     view: (name: string) => `View ${name}`,
     with: (plant: string) => `with ${plant}`,
+    soldOut: "Sold out",
+    off: (n: number) => `${n}% off`,
   },
   steps: {
     eyebrow: "Easy peasy",
@@ -93,6 +96,14 @@ export const en = {
     sub: "They all love a sunny windowsill and forgive you for forgetting to water.",
     sun: "Sun",
     water: "Water",
+    cta: "Pick a pot for it",
+  },
+  plantPage: {
+    eyebrow: "Roommate profile",
+    pickPot: "Pick a pot for it to live in",
+    pickPotSub: "Every pot below comes with this plant inside.",
+    noPots: "No pots are available right now.",
+    care: "Care card",
   },
   social: {
     eyebrow: "Come say hi",
@@ -111,6 +122,10 @@ export const en = {
   product: {
     allPots: "All pots",
     whoInside: "Who lives inside?",
+    whoInsideSlot: (slot: string) => `Who lives in ${slot}?`,
+    soldOut: "Sold out",
+    onlyLeft: (n: number) => `Only ${n} left!`,
+    combo: "Your combo",
     included: "Included",
     qty: "Quantity",
     fewer: "Fewer",
@@ -208,6 +223,9 @@ export const en = {
       recipientPhone: "Please enter their mobile number",
       area: "Please add the area",
       address: "Please add the street and building",
+      stock: (item: string) => `Sorry! ${item} just ran low. We've refreshed the shop, please check your bag.`,
+      unavailable: (item: string) => `${item} isn't available anymore. Please remove it from your bag.`,
+      server: "Something went wrong. Please try again.",
     },
   },
   thanks: {

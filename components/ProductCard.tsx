@@ -3,18 +3,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useI18n } from "./I18nProvider";
+import { useCatalog } from "./CatalogProvider";
 import { useAddToBag } from "./useAddToBag";
+import { Price } from "./Price";
 import { PlusIcon } from "./icons";
-import { PLANTS, TINT, unitPrice, type Product } from "@/lib/products";
-import { formatPrice } from "@/lib/i18n";
+import { TINT, defaultPlantsFor, linePrice, maxQty, plantsSummary, variantImage, type Product } from "@/lib/catalog";
 
 const TILT = ["hover:-rotate-2", "hover:rotate-2", "hover:-rotate-1"];
 
-export function ProductCard({ product: p, index = 0 }: { product: Product; index?: number }) {
+export function ProductCard({ product: p, index = 0, plants: forced }: { product: Product; index?: number; plants?: string[] }) {
   const { locale, t } = useI18n();
+  const catalog = useCatalog();
   const addToBag = useAddToBag();
   const tint = TINT[p.tint];
   const name = p.name[locale];
+  const plants = forced ?? defaultPlantsFor(catalog, p);
+  const { full, unit } = linePrice(catalog, p, plants);
+  const out = maxQty(catalog, p, plants) === 0;
+  const href = `/${locale}/pots/${p.id}${forced ? `?plants=${plants.join(",")}` : ""}`;
+  const photo = (forced && variantImage(p, plants)) || p.image;
 
   return (
     <article
@@ -22,39 +29,46 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
     >
       <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] border-[3px] border-ink bg-paper">
         <Image
-          src={p.img}
+          src={photo}
           alt={`${name}, ${p.kind[locale]}`}
           fill
           sizes="(min-width: 1024px) 360px, (min-width: 640px) 45vw, 90vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className={`object-cover transition-transform duration-500 group-hover:scale-105 ${out ? "opacity-60 grayscale-[.6]" : ""}`}
           style={{ objectPosition: p.pos }}
         />
         <span
-          className={`absolute start-3 top-3 -rotate-6 rounded-full border-2 border-ink px-3 py-1 text-xs font-extrabold ${tint.solid} ${tint.text}`}
+          className={`absolute start-3 top-3 -rotate-6 rounded-full border-2 border-ink px-3 py-1 text-xs font-extrabold ${out ? "bg-paper text-ink" : `${tint.solid} ${tint.text}`}`}
         >
-          {p.badge[locale]}
+          {out ? t.shop.soldOut : p.badge[locale]}
         </span>
-        <button
-          type="button"
-          onClick={() => addToBag(p.id, p.plant)}
-          aria-label={t.shop.quickAdd(name)}
-          className="absolute end-3 bottom-3 z-[2] grid size-12 place-items-center rounded-full border-[3px] border-ink bg-pink text-white shadow-pop-sm transition-transform duration-200 hover:scale-110 hover:rotate-90"
-        >
-          <PlusIcon />
-        </button>
+        {p.salePercent > 0 && !out && (
+          <span className="absolute end-3 top-3 rotate-6 rounded-full border-2 border-ink bg-sun px-3 py-1 text-xs font-extrabold">
+            {t.shop.off(p.salePercent)}
+          </span>
+        )}
+        {!out && (
+          <button
+            type="button"
+            onClick={() => addToBag(p.id, plants)}
+            aria-label={t.shop.quickAdd(name)}
+            className="absolute end-3 bottom-3 z-[2] grid size-12 place-items-center rounded-full border-[3px] border-ink bg-pink text-white shadow-pop-sm transition-transform duration-200 hover:scale-110 hover:rotate-90"
+          >
+            <PlusIcon />
+          </button>
+        )}
       </div>
       <div className="flex items-start justify-between gap-3 px-1">
         <div className="min-w-0">
           <h3 className="font-head text-2xl font-extrabold">{name}</h3>
           <p className="text-sm text-ink-soft">
-            {p.kind[locale]} · {t.shop.with(PLANTS[p.plant].name[locale])}
+            {p.kind[locale]} · {t.shop.with(plantsSummary(catalog, plants, locale))}
           </p>
         </div>
         <span className="shrink-0 rounded-full border-2 border-ink bg-paper px-3 py-1 font-extrabold whitespace-nowrap tabular-nums">
-          {formatPrice(unitPrice(p.id, p.plant), locale)}
+          <Price full={full} unit={unit} locale={locale} />
         </span>
       </div>
-      <Link href={`/${locale}/pots/${p.id}`} aria-label={t.shop.view(name)} className="absolute inset-0 z-[1] rounded-[28px]" />
+      <Link href={href} aria-label={t.shop.view(name)} className="absolute inset-0 z-[1] rounded-[28px]" />
     </article>
   );
 }

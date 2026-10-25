@@ -3,14 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "setup": "tsx scripts/setup.mts",
+    "predev": "npm run setup",
     "dev": "next dev",
+    "prebuild": "npm run setup",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "admin:create": "tsx scripts/create-admin.mts"
   },
   "dependencies": {
     "next": "^16.4.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7",
     "zustand": "^5.0.16"
   },
   "devDependencies": {
@@ -19,6 +25,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
   }
 }

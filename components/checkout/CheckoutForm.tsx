@@ -3,28 +3,27 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useI18n } from "../I18nProvider";
+import { useCatalog } from "../CatalogProvider";
+import { Price } from "../Price";
 import { BackIcon, GiftIcon, PlantIcon } from "../icons";
 import { ChoiceCard, Field } from "./Field";
-import { cartSubtotal, useShop, type Order, type PaymentKey, type WrapKey } from "@/lib/store";
-import { PLANTS, PRODUCT_BY_ID, TINT, unitPrice } from "@/lib/products";
+import { useShop } from "@/lib/store";
+import { TINT, cartSubtotal, linePrice, plantsSummary, productOf, variantImage } from "@/lib/catalog";
+import { EG_MOBILE, EMAIL, PAYMENTS, WRAPS, cleanPhone, type PaymentKey, type WrapKey } from "@/lib/orders";
+import { placeOrderAction } from "@/app/[locale]/checkout/actions";
 import { DELIVERY, deliveryFee, type Governorate } from "@/lib/site";
 import { formatPrice } from "@/lib/i18n";
 
 const NOTE_MAX = 200;
 const GOVS: Governorate[] = ["cairo", "giza", "alexandria", "other"];
-const WRAPS: WrapKey[] = ["kraft", "confetti", "ribbon"];
-const PAYMENTS: PaymentKey[] = ["cod", "card", "wallet"];
 const WRAP_SWATCH: Record<WrapKey, string> = {
   kraft: "bg-orange-soft",
   confetti: "bg-[conic-gradient(var(--color-pink)_0_25%,var(--color-sun)_0_50%,var(--color-sky)_0_75%,var(--color-lime)_0)]",
   ribbon: "bg-pink",
 };
 
-const EG_MOBILE = /^(?:\+?20|0020)?0?1[0125]\d{8}$/;
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const cleanPhone = (v: string) => v.replace(/[\s()-]/g, "");
 
 type Form = {
   name: string;
@@ -93,13 +92,16 @@ export function CheckoutForm() {
   const hydrated = useShop((s) => s.hydrated);
   const lines = useShop((s) => s.lines);
   const placeOrder = useShop((s) => s.placeOrder);
+  const catalog = useCatalog();
+  const [pending, startTransition] = useTransition();
+  const [serverError, setServerError] = useState("");
 
   const [f, setF] = useState<Form>(INITIAL);
   const [tried, setTried] = useState(false);
   const [placing, setPlacing] = useState(false);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((prev) => ({ ...prev, [k]: v }));
 
-  const subtotal = cartSubtotal(lines);
+  const subtotal = cartSubtotal(catalog, lines);
   const fee = deliveryFee(f.governorate, subtotal);
   const total = subtotal + fee;
 
@@ -127,37 +129,37 @@ export function CheckoutForm() {
       document.getElementById(`co-${firstBad}`)?.focus();
       return;
     }
-    const order: Order = {
-      number: `ZL-${Date.now().toString(36).slice(-5).toUpperCase()}`,
-      createdAt: new Date().toISOString(),
-      locale,
-      lines: lines.map((l) => ({ ...l, unit: unitPrice(l.id, l.plant) })),
-      subtotal,
-      delivery: fee,
-      total,
-      contact: { name: f.name.trim(), phone: cleanPhone(f.phone), email: f.email.trim() },
-      gift: f.isGift
-        ? { name: f.recipientName.trim(), phone: cleanPhone(f.recipientPhone), wrap: f.wrap, note: f.note.trim(), hidePrices: f.hidePrices }
-        : null,
-      address: {
-        governorate: f.governorate,
-        area: f.area.trim(),
-        street: f.street.trim(),
-        apartment: f.apartment.trim(),
-        date: f.date,
-        notes: f.notes.trim(),
-      },
-      payment: f.payment,
-    };
-    setPlacing(true);
-    placeOrder(order);
-    router.push(`/${locale}/checkout/thanks`);
+    setServerError("");
+    startTransition(async () => {
+      const result = await placeOrderAction({
+        locale,
+        lines,
+        contact: { name: f.name, phone: f.phone, email: f.email },
+        gift: f.isGift
+          ? { name: f.recipientName, phone: f.recipientPhone, wrap: f.wrap, note: f.note, hidePrices: f.hidePrices }
+          : null,
+        address: { governorate: f.governorate, area: f.area, street: f.street, apartment: f.apartment, date: f.date, notes: f.notes },
+        payment: f.payment,
+      });
+      if (result.ok) {
+        setPlacing(true);
+        placeOrder(result.order);
+        router.push(`/${locale}/checkout/thanks`);
+        return;
+      }
+      const item = result.item ?? "";
+      setServerError(
+        result.error === "stock" ? c.errors.stock(item) : result.error === "unavailable" ? c.errors.unavailable(item) : c.errors.server,
+      );
+      // Pull fresh stock/prices; the catalog provider then trims the bag to what's available.
+      router.refresh();
+    });
   }
 
   if (!hydrated || placing) {
     return (
       <div className="grid min-h-[50vh] place-content-center justify-items-center gap-4 text-center">
-        <PlantIcon plant="cactus" className="size-24 animate-wiggle" />
+        <PlantIcon icon="cactus" className="size-24 animate-wiggle" />
         {placing && <p className="font-head text-2xl">{c.placing}</p>}
       </div>
     );
@@ -166,7 +168,7 @@ export function CheckoutForm() {
   if (lines.length === 0) {
     return (
       <div className="sticker mx-auto grid max-w-md justify-items-center gap-4 p-10 text-center">
-        <PlantIcon plant="empty" className="size-28 animate-wiggle" />
+        <PlantIcon icon="pot" className="size-28 animate-wiggle" />
         <h2 className="font-head text-3xl font-extrabold">{c.emptyTitle}</h2>
         <p className="text-ink-soft">{c.emptyText}</p>
         <Link href={`/${locale}#shop`} className="btn btn-pink">
@@ -230,7 +232,7 @@ export function CheckoutForm() {
               onChange={() => set("isGift", false)}
               title={c.giftNo}
               sub={c.giftNoSub}
-              icon={<PlantIcon plant="cactus" className="size-7 shrink-0" />}
+              icon={<PlantIcon icon="cactus" className="size-7 shrink-0" />}
               onClass="bg-lime-soft"
             />
           </div>
@@ -365,20 +367,25 @@ export function CheckoutForm() {
         <h2 className="font-head text-2xl font-extrabold">{c.summary}</h2>
         <ul className="grid max-h-[40vh] gap-3 overflow-y-auto">
           {lines.map((l) => {
-            const p = PRODUCT_BY_ID[l.id];
+            const p = productOf(catalog, l.id);
+            if (!p) return null;
+            const price = linePrice(catalog, p, l.plants);
+            const photo = variantImage(p, l.plants);
             return (
-              <li key={`${l.id}-${l.plant}`} className="flex items-center gap-3">
+              <li key={`${l.id}-${l.plants.join("+")}`} className="flex items-center gap-3">
                 <span className={`relative size-14 shrink-0 overflow-hidden rounded-xl border-2 border-ink ${TINT[p.tint].soft}`}>
-                  <Image src={p.img} alt="" fill sizes="56px" className="object-cover" style={{ objectPosition: p.pos }} />
+                  <Image src={photo ?? p.image} alt="" fill sizes="56px" className="object-cover" style={{ objectPosition: photo ? "50% 50%" : p.pos }} />
                   <span className="absolute -end-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-pink text-[11px] font-extrabold text-white">
                     {l.qty}
                   </span>
                 </span>
                 <span className="grid min-w-0 flex-1">
                   <b className="truncate">{p.name[locale]}</b>
-                  <small className="text-ink-soft">{PLANTS[l.plant].name[locale]}</small>
+                  <small className="text-ink-soft">{plantsSummary(catalog, l.plants, locale)}</small>
                 </span>
-                <span className="font-bold whitespace-nowrap tabular-nums">{formatPrice(unitPrice(l.id, l.plant) * l.qty, locale)}</span>
+                <span className="font-bold whitespace-nowrap tabular-nums">
+                  <Price full={price.full * l.qty} unit={price.unit * l.qty} locale={locale} />
+                </span>
               </li>
             );
           })}
@@ -399,13 +406,18 @@ export function CheckoutForm() {
             <dd>{formatPrice(total, locale)}</dd>
           </div>
         </dl>
+        {serverError && (
+          <p role="alert" className="rounded-2xl border-2 border-pink bg-pink-soft px-4 py-2 text-sm font-bold">
+            {serverError}
+          </p>
+        )}
         {tried && Object.keys(errors).length > 0 && (
           <p role="alert" className="rounded-2xl bg-pink-soft px-4 py-2 text-sm font-bold">
             {c.fixErrors}
           </p>
         )}
-        <button type="submit" className="btn btn-pink w-full text-xl">
-          {c.place}
+        <button type="submit" disabled={pending} className="btn btn-pink w-full text-xl">
+          {pending ? c.placing : c.place}
         </button>
         <Link href={`/${locale}#shop`} className="inline-flex items-center justify-center gap-1.5 text-sm font-bold text-ink-soft hover:text-pink">
           <BackIcon width={16} height={16} className="rtl:-scale-x-100" />

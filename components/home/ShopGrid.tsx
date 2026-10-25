@@ -1,8 +1,8 @@
 import { getDict, type Locale } from "@/lib/i18n";
-import { PRODUCTS } from "@/lib/products";
+import type { Product } from "@/lib/catalog";
 import { ProductCard } from "../ProductCard";
 
-export function ShopGrid({ locale }: { locale: Locale }) {
+export function ShopGrid({ locale, products }: { locale: Locale; products: Product[] }) {
   const t = getDict(locale);
   return (
     <section id="shop" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-12">
@@ -14,7 +14,7 @@ export function ShopGrid({ locale }: { locale: Locale }) {
         <p className="max-w-[38ch] text-lg text-ink-soft">{t.shop.sub}</p>
       </div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {PRODUCTS.map((p, i) => (
+        {products.map((p, i) => (
           <ProductCard key={p.id} product={p} index={i} />
         ))}
       </div>

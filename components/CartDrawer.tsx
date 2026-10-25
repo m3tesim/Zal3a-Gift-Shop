@@ -5,9 +5,11 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useI18n } from "./I18nProvider";
 import { QtyStepper } from "./QtyStepper";
+import { lineLimit, useCatalog } from "./CatalogProvider";
+import { Price } from "./Price";
 import { CloseIcon, PlantIcon } from "./icons";
-import { cartSubtotal, useShop } from "@/lib/store";
-import { PLANTS, PRODUCT_BY_ID, TINT, unitPrice } from "@/lib/products";
+import { useShop } from "@/lib/store";
+import { TINT, cartSubtotal, linePrice, plantsSummary, productOf, variantImage } from "@/lib/catalog";
 import { FREE_DELIVERY_OVER } from "@/lib/site";
 import { formatPrice } from "@/lib/i18n";
 
@@ -19,8 +21,9 @@ export function CartDrawer() {
   const setQty = useShop((s) => s.setQty);
   const remove = useShop((s) => s.remove);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const catalog = useCatalog();
 
-  const subtotal = cartSubtotal(lines);
+  const subtotal = cartSubtotal(catalog, lines);
   const toFree = Math.max(0, FREE_DELIVERY_OVER - subtotal);
   const close = () => setCartOpen(false);
 
@@ -65,7 +68,7 @@ export function CartDrawer() {
 
         {lines.length === 0 ? (
           <div className="grid flex-1 place-content-center justify-items-center gap-4 p-8 text-center">
-            <PlantIcon plant="empty" className="size-28 animate-wiggle" />
+            <PlantIcon icon="pot" className="size-28 animate-wiggle" />
             <p className="max-w-[24ch] text-lg font-bold">{t.cart.empty}</p>
             <Link href={`/${locale}#shop`} onClick={close} className="btn btn-pink">
               {t.cart.emptyCta}
@@ -74,31 +77,41 @@ export function CartDrawer() {
         ) : (
           <ul className="grid flex-1 content-start gap-3 overflow-y-auto p-5">
             {lines.map((l, i) => {
-              const p = PRODUCT_BY_ID[l.id];
+              const p = productOf(catalog, l.id);
+              if (!p) return null;
+              const price = linePrice(catalog, p, l.plants);
               return (
-                <li key={`${l.id}-${l.plant}`} className="flex gap-3 rounded-3xl border-[3px] border-ink bg-paper p-2.5">
+                <li key={`${l.id}-${l.plants.join("+")}`} className="flex gap-3 rounded-3xl border-[3px] border-ink bg-paper p-2.5">
                   <Link
-                    href={`/${locale}/pots/${p.id}`}
+                    href={`/${locale}/pots/${p.id}?plants=${l.plants.join(",")}`}
                     onClick={close}
                     className={`relative size-20 shrink-0 overflow-hidden rounded-2xl ${TINT[p.tint].soft}`}
                   >
-                    <Image src={p.img} alt="" fill sizes="80px" className="object-cover" style={{ objectPosition: p.pos }} />
+                    <Image
+                      src={variantImage(p, l.plants) ?? p.image}
+                      alt=""
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                      style={{ objectPosition: variantImage(p, l.plants) ? "50% 50%" : p.pos }}
+                    />
                   </Link>
                   <div className="grid min-w-0 flex-1 gap-1.5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <b className="block leading-tight">{p.name[locale]}</b>
-                        <small className="text-ink-soft">{PLANTS[l.plant].name[locale]}</small>
+                        <small className="text-ink-soft">{plantsSummary(catalog, l.plants, locale)}</small>
                       </div>
                       <span className="font-extrabold whitespace-nowrap tabular-nums">
-                        {formatPrice(unitPrice(l.id, l.plant) * l.qty, locale)}
+                        <Price full={price.full * l.qty} unit={price.unit * l.qty} locale={locale} />
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <QtyStepper
                         size="sm"
                         value={l.qty}
-                        onChange={(n) => setQty(i, n)}
+                        max={lineLimit(catalog, l)}
+                        onChange={(n) => setQty(i, n, lineLimit(catalog, l))}
                         labels={{ group: t.product.qty, fewer: t.cart.decrease, more: t.cart.increase }}
                       />
                       <button

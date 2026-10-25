@@ -1,14 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatPrice, getDict, type Locale } from "@/lib/i18n";
-import { PRODUCT_BY_ID } from "@/lib/products";
+import type { Product } from "@/lib/catalog";
 import { ArrowIcon, CheckIcon, FlowerShape, GiftIcon, StarShape } from "../icons";
 
 const PERK_BG = ["bg-sun-soft -rotate-2", "bg-sky-soft rotate-1", "bg-lime-soft -rotate-1"];
 
-export function Hero({ locale }: { locale: Locale }) {
+export function Hero({ locale, featured: duo, price }: { locale: Locale; featured?: Product; price: number }) {
   const t = getDict(locale);
-  const duo = PRODUCT_BY_ID.duo;
 
   return (
     <section className="relative overflow-hidden">
@@ -50,17 +49,19 @@ export function Hero({ locale }: { locale: Locale }) {
           </ul>
         </div>
 
+        {duo && (
         <div className="relative isolate mx-auto aspect-square w-full max-w-[520px]">
           <div className="absolute -start-[8%] -bottom-[6%] -z-10 aspect-square w-[46%] rounded-full bg-sun" />
           <div className="absolute -end-[5%] -top-[5%] -z-10 aspect-square w-[30%] rounded-full bg-sky" />
           <div className="absolute inset-0 animate-rise overflow-hidden rounded-[58%_42%_50%_50%/46%_52%_48%_54%] border-[3px] border-ink bg-paper shadow-pop">
             <Image
-              src={duo.img}
-              alt={locale === "ar" ? "قصريتين على شكل قطط، واحدة مخضوضة وواحدة بتضحك، وطالع من راسهم زرع صغير" : "Two white ceramic cat pots on a sunny table, one wide-eyed and one laughing, each with a small plant growing from its head"}
+              src={duo.image}
+              alt={`${duo.name[locale]}, ${duo.kind[locale]}`}
               fill
               priority
               sizes="(min-width: 768px) 520px, 92vw"
               className="object-cover"
+              style={{ objectPosition: duo.pos }}
             />
           </div>
 
@@ -73,11 +74,13 @@ export function Hero({ locale }: { locale: Locale }) {
           </span>
 
           <Link
-            href={`/${locale}/pots/duo`}
+            href={`/${locale}/pots/${duo.id}`}
             className="sticker absolute start-[2%] top-[38%] -rotate-6 px-4 py-2 font-extrabold transition-transform hover:rotate-0"
           >
             {duo.name[locale]}
-            <small className="block font-semibold text-ink-soft">{t.hero.tagSmall(formatPrice(duo.price, locale))}</small>
+            <small className="block font-semibold text-ink-soft">
+              {duo.slots.length === 2 ? t.hero.tagSmall(formatPrice(price, locale)) : formatPrice(price, locale)}
+            </small>
           </Link>
 
           <div
@@ -97,6 +100,7 @@ export function Hero({ locale }: { locale: Locale }) {
             </span>
           </div>
         </div>
+        )}
       </div>
     </section>
   );

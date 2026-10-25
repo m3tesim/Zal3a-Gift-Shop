@@ -10,8 +10,8 @@ const STYLE = [
 export function GiftSteps({ locale }: { locale: Locale }) {
   const t = getDict(locale);
   const art = [
-    <PlantIcon key="a" plant="empty" className="size-24" />,
-    <PlantIcon key="b" plant="cactus" className="size-24" />,
+    <PlantIcon key="a" icon="pot" className="size-24" />,
+    <PlantIcon key="b" icon="cactus" className="size-24" />,
     <GiftIcon key="c" className="size-20 text-pink" strokeWidth={2} />,
   ];
 

@@ -1,4 +1,5 @@
-import type { PlantKey } from "@/lib/products";
+import type { PlantIconKey } from "@/lib/catalog";
+import { PLANT_ART, type Tok } from "@/lib/plant-art";
 import type { SocialId } from "@/lib/site";
 
 type P = React.SVGProps<SVGSVGElement>;
@@ -82,43 +83,22 @@ export const FlowerShape = (p: P) => (
   </svg>
 );
 
-/* Little cartoon plants-in-pots, drawn with the ink outline */
-export function PlantIcon({ plant, ...p }: { plant: PlantKey } & P) {
-  const o = { stroke: "var(--color-ink)", strokeWidth: 2.5, strokeLinejoin: "round" } as const;
-  const pot = (fill: string) => <path d="M20 58h24l-3-14H23z" fill={fill} {...o} />;
+/* Little cartoon plants-in-pots, drawn from shared data in lib/plant-art.ts */
+export function PlantIcon({ icon, ...p }: { icon: PlantIconKey } & P) {
+  const color = (t: Tok | "none") => (t === "none" ? "none" : `var(--color-${t})`);
   return (
     <svg viewBox="0 0 64 64" aria-hidden="true" {...p}>
-      {plant === "cactus" && (
-        <>
-          {pot("var(--color-pink-soft)")}
-          <path d="M26 44V22a6 6 0 0 1 12 0v22" fill="var(--color-lime)" {...o} />
-          <path d="M26 36h-5a4 4 0 0 1-4-4v-6a3 3 0 0 1 6 0v4h3M38 32h4v-6a3 3 0 0 1 6 0v6a5 5 0 0 1-5 5h-5" fill="var(--color-lime)" {...o} />
-          <circle cx="32" cy="13" r="3.5" fill="var(--color-pink)" {...o} strokeWidth={2} />
-        </>
-      )}
-      {plant === "echeveria" && (
-        <>
-          {pot("var(--color-sun-soft)")}
-          <path d="M32 44c-12 0-18-6-18-10 6 0 10 2 12 4-3-6-2-12 0-15 3 3 5 8 6 12 1-4 3-9 6-12 2 3 3 9 0 15 2-2 6-4 12-4 0 4-6 10-18 10z" fill="var(--color-sky)" {...o} />
-        </>
-      )}
-      {plant === "haworthia" && (
-        <>
-          {pot("var(--color-lilac-soft)")}
-          <path d="M32 44 22 18l8 14 2-24 2 24 8-14-10 26zM32 44l-16-12 12 8M32 44l16-12-12 8" fill="var(--color-lime)" {...o} />
-          <path d="M28 30h2M34 30h2M30 24h1M33 24h1" stroke="var(--color-paper)" strokeWidth="2" strokeLinecap="round" />
-        </>
-      )}
-      {plant === "empty" && (
-        <>
-          <path d="M16 26h32l-4 30H20z" fill="var(--color-paper)" {...o} />
-          <circle cx="27" cy="38" r="2" fill="var(--color-ink)" />
-          <circle cx="37" cy="38" r="2" fill="var(--color-ink)" />
-          <path d="M28 44q4 3 8 0" fill="none" stroke="var(--color-ink)" strokeWidth="2.5" strokeLinecap="round" />
-          <circle cx="23" cy="43" r="2.5" fill="var(--color-pink)" opacity=".7" />
-          <circle cx="41" cy="43" r="2.5" fill="var(--color-pink)" opacity=".7" />
-        </>
-      )}
+      {PLANT_ART[icon].map((s, i) => {
+        const attrs = {
+          fill: color(s.fill),
+          stroke: s.stroke === null ? undefined : color(s.stroke ?? "ink"),
+          strokeWidth: s.stroke === null ? undefined : (s.width ?? 2.5),
+          strokeLinejoin: "round" as const,
+          strokeLinecap: s.cap ? ("round" as const) : undefined,
+          opacity: s.opacity,
+        };
+        return "path" in s ? <path key={i} d={s.path} {...attrs} /> : <circle key={i} cx={s.circle[0]} cy={s.circle[1]} r={s.circle[2]} {...attrs} />;
+      })}
     </svg>
   );
 }

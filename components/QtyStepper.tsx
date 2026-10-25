@@ -1,18 +1,20 @@
 "use client";
 
 import { MinusIcon, PlusIcon } from "./icons";
-import { MAX_QTY } from "@/lib/store";
+import { MAX_QTY } from "@/lib/catalog";
 
 export function QtyStepper({
   value,
   onChange,
   min = 1,
+  max = MAX_QTY,
   labels,
   size = "md",
 }: {
   value: number;
   onChange: (n: number) => void;
   min?: number;
+  max?: number;
   labels: { group: string; fewer: string; more: string };
   size?: "sm" | "md";
 }) {
@@ -39,7 +41,7 @@ export function QtyStepper({
         type="button"
         className={`${btn} grid place-items-center rounded-full transition-colors hover:bg-lime-soft disabled:opacity-30`}
         onClick={() => onChange(value + 1)}
-        disabled={value >= MAX_QTY}
+        disabled={value >= max}
         aria-label={labels.more}
       >
         <PlusIcon width={size === "sm" ? 14 : 18} height={size === "sm" ? 14 : 18} />
