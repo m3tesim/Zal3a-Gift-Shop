@@ -8,6 +8,8 @@ import { GiftMatcher } from "@/components/home/GiftMatcher";
 import { GiftSteps } from "@/components/home/GiftSteps";
 import { Roommates } from "@/components/home/Roommates";
 import { SocialSection } from "@/components/home/SocialSection";
+import { HappyCustomers } from "@/components/home/HappyCustomers";
+import { featuredReviews } from "@/lib/server/reviews-repo";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -22,7 +24,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <ShopGrid locale={locale} products={catalog.products} />
       <GiftMatcher />
       <GiftSteps locale={locale} />
-      <Roommates locale={locale} plants={catalog.plants.filter((p) => !p.potOnly)} />
+      <HappyCustomers locale={locale} reviews={featuredReviews()} catalog={catalog} />
+      <Roommates locale={locale} catalog={catalog} />
       <SocialSection locale={locale} />
     </>
   );

@@ -3,10 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { deletePlantAction, savePlantAction, type PlantInput } from "@/app/admin/actions";
-import { Chips, ImageUpload, LInput, Labeled, Notice, NumberInput, Panel, TextInput, Toggle } from "./ui";
+import { Chips, ImageUpload, LInput, Labeled, Notice, NumberInput, Panel, Select, TextInput, Toggle } from "./ui";
 import { PlantIcon } from "../icons";
-import { PLANT_ICONS, TINT, TINTS, WHOS, type Plant } from "@/lib/catalog";
-import { en } from "@/lib/dictionaries/en";
+import { PLANT_ICONS, TINT, TINTS, type CareOption, type Plant, type Tag } from "@/lib/catalog";
 import { toSlug } from "./PotForm";
 
 const blank = { en: "", ar: "" };
@@ -15,35 +14,29 @@ function initial(p: Plant | null): PlantInput {
   if (!p)
     return {
       isNew: true, id: "", name: blank, latin: blank, blurb: blank,
-      price: 0, sun: 2, water: 1, tint: "lime", icon: "leafy", image: null,
-      stock: 10, visible: true, recipients: [],
+      price: 0, sun: null, water: null, tint: "lime", icon: "leafy", image: null,
+      stock: 10, visible: true, recipients: [], vibes: [],
     };
   const { potOnly: _p, sort: _s, ...rest } = p;
   return { ...rest, isNew: false };
 }
 
-function Level({ label, value, onChange, names }: { label: string; value: number; onChange: (n: number) => void; names: string[] }) {
+function CareSelect({ label, value, options, onChange }: { label: string; value: string | null; options: CareOption[]; onChange: (v: string | null) => void }) {
   return (
-    <fieldset className="grid gap-2">
-      <legend className="mb-2 text-sm font-bold">{label}</legend>
-      <div className="flex flex-wrap gap-2">
-        {names.map((n, i) => (
-          <button
-            key={i}
-            type="button"
-            aria-pressed={value === i}
-            onClick={() => onChange(i)}
-            className={`rounded-full border-2 px-3 py-1 text-sm font-bold ${value === i ? "border-ink bg-sky" : "border-line bg-paper hover:border-ink"}`}
-          >
-            {i} · {n}
-          </button>
+    <Labeled label={label} hint="Add or rename options under Tags & care.">
+      <Select value={value ?? ""} onChange={(e) => onChange(e.target.value || null)}>
+        <option value="">Not shown</option>
+        {options.map((o) => (
+          <option key={o.id} value={o.id}>
+            {"●".repeat(o.level) || "○"} {o.label.en}
+          </option>
         ))}
-      </div>
-    </fieldset>
+      </Select>
+    </Labeled>
   );
 }
 
-export function PlantForm({ plant }: { plant: Plant | null }) {
+export function PlantForm({ plant, tags, care }: { plant: Plant | null; tags: Tag[]; care: CareOption[] }) {
   const router = useRouter();
   const [f, setF] = useState<PlantInput>(() => initial(plant));
   const [slugTouched, setSlugTouched] = useState(!!plant);
@@ -156,17 +149,27 @@ export function PlantForm({ plant }: { plant: Plant | null }) {
       </Panel>
 
       {!potOnly && (
-        <Panel title="Care">
-          <Level label="Sun" value={f.sun} onChange={(n) => set("sun", n)} names={en.product.sunLevels} />
-          <Level label="Water" value={f.water} onChange={(n) => set("water", n)} names={en.product.waterLevels} />
+        <Panel title="Care" sub="Shown on the plant's page and on every pot it goes in.">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <CareSelect label="Sun" value={f.sun} options={care.filter((o) => o.kind === "sun")} onChange={(v) => set("sun", v)} />
+            <CareSelect label="Watering" value={f.water} options={care.filter((o) => o.kind === "water")} onChange={(v) => set("water", v)} />
+          </div>
+          <Chips
+            label="Best for"
+            options={tags.filter((t) => t.kind === "who").map((t) => ({ key: t.id, label: `${t.emoji} ${t.label.en}` }))}
+            value={f.recipients}
+            onChange={(v) => set("recipients", v)}
+          />
+          <Chips
+            label="Vibe"
+            options={tags.filter((t) => t.kind === "vibe").map((t) => ({ key: t.id, label: `${t.emoji} ${t.label.en}` }))}
+            value={f.vibes}
+            onChange={(v) => set("vibes", v)}
+          />
+          <p className="text-sm text-ink-soft">The gift matchmaker suggests the plant that best fits who it&apos;s for and their vibe.</p>
         </Panel>
       )}
 
-      {!potOnly && (
-        <Panel title="Gift matchmaker" sub="When the matchmaker suggests a pot, it picks the first plant tagged for that person.">
-          <Chips label="Great for" options={WHOS.map((w) => ({ key: w, label: en.matcher.who[w] }))} value={f.recipients} onChange={(v) => set("recipients", v)} />
-        </Panel>
-      )}
 
       <Panel title="On the website">
         <Toggle label="Customers can pick this" checked={f.visible} onChange={(v) => set("visible", v)} />

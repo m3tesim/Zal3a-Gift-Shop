@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useI18n } from "../I18nProvider";
 import { useCatalog } from "../CatalogProvider";
+import { useMe } from "../account/useMe";
 import { Price } from "../Price";
 import { BackIcon, GiftIcon, PlantIcon } from "../icons";
 import { ChoiceCard, Field } from "./Field";
@@ -95,11 +96,16 @@ export function CheckoutForm() {
   const catalog = useCatalog();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState("");
+  const me = useMe();
 
   const [f, setF] = useState<Form>(INITIAL);
   const [tried, setTried] = useState(false);
   const [placing, setPlacing] = useState(false);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((prev) => ({ ...prev, [k]: v }));
+
+  useEffect(() => {
+    if (me) setF((s) => ({ ...s, name: s.name || me.name, phone: s.phone || me.phone, email: s.email || me.email }));
+  }, [me]);
 
   const subtotal = cartSubtotal(catalog, lines);
   const fee = deliveryFee(f.governorate, subtotal);
@@ -181,6 +187,18 @@ export function CheckoutForm() {
   return (
     <form noValidate onSubmit={submit} className="grid items-start gap-8 lg:grid-cols-[1fr_400px]">
       <div className="grid gap-7">
+        {me ? (
+          <p className="rounded-3xl border-[3px] border-ink bg-lime-soft px-5 py-3 font-bold">✓ {c.signedInAs(me.email)}</p>
+        ) : (
+          me === null && (
+            <p className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border-[3px] border-dashed border-ink bg-paper px-5 py-3 font-bold">
+              {c.signInNudge}
+              <Link href={`/${locale}/account/login?next=/${locale}/checkout`} className="rounded-full border-2 border-ink bg-sun px-4 py-1 font-extrabold hover:-rotate-2">
+                {c.signIn}
+              </Link>
+            </p>
+          )
+        )}
         <Step n={1} title={c.s1} color="bg-sun">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="co-name" label={c.name} error={shown.name}>
@@ -199,7 +217,7 @@ export function CheckoutForm() {
                 onChange={(e) => set("phone", e.target.value)}
               />
             </Field>
-            <Field id="co-email" label={c.email} error={shown.email} optional className="sm:col-span-2">
+            <Field id="co-email" label={c.email} error={shown.email} hint={c.emailHint} optional className="sm:col-span-2">
               <input
                 {...input("email")}
                 className="field"

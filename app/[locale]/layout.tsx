@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import "../globals.css";
 import { fontVars } from "../fonts";
-import { LOCALES, dirOf, getDict, isLocale } from "@/lib/i18n";
+import { dirOf, getDict, isLocale } from "@/lib/i18n";
 import { I18nProvider } from "@/components/I18nProvider";
 import { CatalogProvider } from "@/components/CatalogProvider";
 import { readCatalog } from "@/lib/server/catalog-repo";
@@ -14,16 +14,16 @@ import { Toast } from "@/components/Toast";
 
 type Props = { children: React.ReactNode; params: Promise<{ locale: string }> };
 
-export function generateStaticParams() {
-  return LOCALES.map((locale) => ({ locale }));
-}
+// Render the shop on every request: stock, prices and reviews come straight from SQLite
+// (a fast local read), so admin changes and new reviews show up immediately.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Omit<Props, "children">): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const t = getDict(locale);
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+    metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
     title: { default: t.meta.title, template: `%s · zal3a` },
     description: t.meta.description,
     alternates: { languages: { en: "/en", ar: "/ar" } },

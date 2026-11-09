@@ -3,6 +3,9 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { MAX_QTY, comboKey } from "./catalog";
 import type { Order } from "./orders";
 
+/** The signed-in shopper as shown in the UI. undefined = not checked yet. */
+export type Me = { name: string; email: string; phone: string; verified: boolean; marketing: boolean };
+
 /** One cart line = a pot with a plant chosen for each of its slots. */
 export type CartLine = { id: string; plants: string[]; qty: number };
 
@@ -14,6 +17,7 @@ type ShopState = {
   lastOrder: Order | null;
   cartOpen: boolean;
   toast: { id: number; message: string } | null;
+  me: Me | null | undefined;
 
   add: (id: string, plants: string[], qty?: number, max?: number) => void;
   setQty: (index: number, qty: number, max?: number) => void;
@@ -24,6 +28,7 @@ type ShopState = {
   setCartOpen: (open: boolean) => void;
   showToast: (message: string) => void;
   hideToast: () => void;
+  setMe: (me: Me | null) => void;
 };
 
 export const useShop = create<ShopState>()(
@@ -34,6 +39,7 @@ export const useShop = create<ShopState>()(
       lastOrder: null,
       cartOpen: false,
       toast: null,
+      me: undefined,
 
       add: (id, plants, qty = 1, max = MAX_QTY) =>
         set((s) => {
@@ -59,6 +65,7 @@ export const useShop = create<ShopState>()(
       setCartOpen: (cartOpen) => set({ cartOpen }),
       showToast: (message) => set({ toast: { id: Date.now(), message } }),
       hideToast: () => set({ toast: null }),
+      setMe: (me) => set({ me }),
     }),
     {
       name: "zal3a-shop",

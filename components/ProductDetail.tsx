@@ -8,9 +8,10 @@ import { useI18n } from "./I18nProvider";
 import { useCatalog } from "./CatalogProvider";
 import { useAddToBag } from "./useAddToBag";
 import { QtyStepper } from "./QtyStepper";
-import { CareDots } from "./CareDots";
+import { PlantCare } from "./PlantCare";
 import { Price } from "./Price";
 import { BackIcon, GiftIcon, PlantIcon, TruckIcon } from "./icons";
+import { Stars } from "./reviews/Stars";
 import {
   TINT, defaultPlantsFor, linePrice, maxQty, plantOf, productOf, soldOut, variantImage,
   type Catalog, type Product,
@@ -115,7 +116,7 @@ export function ProductDetail({ id }: { id: string }) {
           ) : (
             <>
               {/* No photo for this combo yet: show which plants are picked as stickers */}
-              <div className="absolute end-4 bottom-20 flex flex-col items-end gap-2">
+              <div className={`absolute end-4 flex flex-col items-end gap-2 ${p.styled[locale] ? "bottom-20" : "bottom-4"}`}>
                 {plants.map((id, i) => {
                   const pl = plantOf(catalog, id);
                   return pl ? (
@@ -126,9 +127,11 @@ export function ProductDetail({ id }: { id: string }) {
                   ) : null;
                 })}
               </div>
-              <p className="absolute inset-x-4 bottom-4 rounded-2xl border-2 border-ink bg-paper/90 px-4 py-2 text-sm text-ink-soft backdrop-blur">
-                {t.product.styled(p.styled[locale])}
-              </p>
+              {p.styled[locale] && (
+                <p className="absolute inset-x-4 bottom-4 rounded-2xl border-2 border-ink bg-paper/90 px-4 py-2 text-sm text-ink-soft backdrop-blur">
+                  {t.product.styled(p.styled[locale])}
+                </p>
+              )}
             </>
           )}
         </div>
@@ -141,6 +144,12 @@ export function ProductDetail({ id }: { id: string }) {
               <span lang="ar" className="font-ar text-2xl text-pink">
                 {p.name.ar}
               </span>
+            )}
+            {catalog.ratings[p.id] && (
+              <a href="#reviews" className="flex w-fit items-center gap-2 font-bold hover:text-pink">
+                <Stars value={catalog.ratings[p.id].avg} label={t.reviews.stars(catalog.ratings[p.id].avg)} />
+                {catalog.ratings[p.id].avg.toFixed(1)} · {t.reviews.count(catalog.ratings[p.id].count)}
+              </a>
             )}
           </div>
 
@@ -243,7 +252,7 @@ export function ProductDetail({ id }: { id: string }) {
             <span className="absolute end-5 top-5 size-4 rounded-full border-[3px] border-ink bg-cream" aria-hidden="true" />
             <h2 className="mb-3 font-head text-xl font-extrabold">{t.product.tag}</h2>
             <dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-2">
-              {p.specs.map((s, i) => (
+              {p.specs.filter((s) => s.label[locale] && s.value[locale]).map((s, i) => (
                 <div key={i} className="contents">
                   <dt className="text-ink-soft">{s.label[locale]}</dt>
                   <dd className="font-bold">{s.value[locale]}</dd>
@@ -261,10 +270,12 @@ export function ProductDetail({ id }: { id: string }) {
                       {pl.name[locale]}
                     </b>
                   )}
-                  <div className="grid grid-cols-2 gap-4">
-                    <CareDots kind="sun" level={pl.sun} label={t.product.sun} hint={t.product.sunLevels[pl.sun]} />
-                    <CareDots kind="water" level={pl.water} label={t.product.water} hint={t.product.waterLevels[pl.water]} />
-                  </div>
+                  <PlantCare
+                    plant={pl}
+                    catalog={catalog}
+                    locale={locale}
+                    labels={{ sun: t.product.sun, water: t.product.water, bestFor: t.plants.bestFor, vibe: t.plants.vibe }}
+                  />
                 </div>
               );
             })}

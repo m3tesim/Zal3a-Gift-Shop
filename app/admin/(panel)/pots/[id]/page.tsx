@@ -18,7 +18,7 @@ export default async function EditPotPage({
   const { created } = await searchParams;
   const product = getProduct(id);
   if (!product) notFound();
-  const { plants } = readCatalog({ includeHidden: true });
+  const { plants, tags } = readCatalog({ includeHidden: true });
 
   return (
     <div className="grid gap-6">
@@ -36,7 +36,7 @@ export default async function EditPotPage({
         )}
       </header>
       {created && <Notice kind="ok">Pot created! Now add photos for its plant combos below.</Notice>}
-      <PotForm key={product.id} product={product} plants={plants} />
+      <PotForm key={product.id} product={product} plants={plants} tags={tags} />
       <VariantGrid product={product} plants={plants} />
     </div>
   );

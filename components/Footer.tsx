@@ -36,6 +36,12 @@ export function Footer({ locale }: { locale: Locale }) {
             <Link href={`/${locale}#plants`} className="w-fit font-bold underline-offset-4 hover:underline">
               {t.nav.plants}
             </Link>
+            <Link href={`/${locale}/track`} className="w-fit font-bold underline-offset-4 hover:underline">
+              {t.footer.track}
+            </Link>
+            <Link href={`/${locale}/account`} className="w-fit font-bold underline-offset-4 hover:underline">
+              {t.footer.account}
+            </Link>
             <LangSwitch className="mt-2 w-fit bg-paper" />
           </div>
           <div className="grid content-start gap-3">

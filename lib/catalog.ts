@@ -3,13 +3,12 @@ import type { Locale } from "./i18n";
 
 export type L = Record<Locale, string>;
 export type Tint = "pink" | "sun" | "sky" | "lime" | "lilac" | "orange";
-export type Vibe = "giggly" | "cozy" | "cute" | "quirky";
-export type Who = "bestie" | "mom" | "coworker" | "crush" | "kid" | "me";
+/** Tag ids are editable in /admin/tags, so they're plain strings. */
+export type Vibe = string;
+export type Who = string;
 export type PlantIconKey = "cactus" | "echeveria" | "haworthia" | "leafy" | "flower" | "pot";
 
 export const TINTS: Tint[] = ["pink", "sun", "sky", "lime", "lilac", "orange"];
-export const VIBES: Vibe[] = ["giggly", "cozy", "cute", "quirky"];
-export const WHOS: Who[] = ["bestie", "mom", "coworker", "crush", "kid", "me"];
 export const PLANT_ICONS: PlantIconKey[] = ["cactus", "echeveria", "haworthia", "leafy", "flower", "pot"];
 
 export type Plant = {
@@ -18,8 +17,8 @@ export type Plant = {
   latin: L;
   blurb: L;
   price: number; // added to the pot price, per pot it lives in
-  sun: number; // 0–3
-  water: number; // 0–3
+  sun: string | null; // care option id
+  water: string | null; // care option id
   tint: Tint;
   icon: PlantIconKey;
   image: string | null;
@@ -27,8 +26,19 @@ export type Plant = {
   visible: boolean;
   potOnly: boolean; // the special "no plant" option
   recipients: Who[];
+  vibes: Vibe[];
   sort: number;
 };
+
+/** "Best for" (who) and vibe tags used by the gift matchmaker. */
+export type TagKind = "who" | "vibe";
+export type Tag = { kind: TagKind; id: string; label: L; emoji: string; line: L; visible: boolean; sort: number };
+
+/** Sun / watering choices shown on plant care cards. level = how many dots (0–3). */
+export type CareKind = "sun" | "water";
+export type CareOption = { kind: CareKind; id: string; label: L; level: number; sort: number };
+
+export type Rating = { avg: number; count: number };
 
 export type Spec = { label: L; value: L };
 
@@ -56,7 +66,16 @@ export type Product = {
   sort: number;
 };
 
-export type Catalog = { products: Product[]; plants: Plant[] };
+export type Catalog = {
+  products: Product[];
+  plants: Plant[];
+  tags: Tag[];
+  care: CareOption[];
+  ratings: Record<string, Rating>;
+};
+
+export const tagsOf = (c: Catalog, kind: TagKind) => c.tags.filter((t) => t.kind === kind);
+export const careOf = (c: Catalog, kind: CareKind, id: string | null) => c.care.find((o) => o.kind === kind && o.id === id) ?? null;
 
 export const MAX_QTY = 9;
 
@@ -122,10 +141,13 @@ export function rankMatches(c: Catalog, who: Who, vibe: Vibe) {
     .map((x) => x.p);
 }
 
-/** Pick a plant suited to the recipient (falls back to the pot's defaults). */
-export function suggestPlants(c: Catalog, product: Product, who: Who) {
-  const fit = pickablePlants(c).find((p) => !p.potOnly && p.recipients.includes(who));
-  return fit ? product.slots.map(() => fit.id) : defaultPlantsFor(c, product);
+/** Pick the plant that best suits the person and vibe (falls back to the pot's defaults). */
+export function suggestPlants(c: Catalog, product: Product, who: Who, vibe?: Vibe) {
+  const score = (p: Plant) => (p.recipients.includes(who) ? 2 : 0) + (vibe && p.vibes.includes(vibe) ? 1 : 0);
+  const best = pickablePlants(c)
+    .filter((p) => !p.potOnly && score(p) > 0)
+    .sort((a, b) => score(b) - score(a) || a.sort - b.sort)[0];
+  return best ? product.slots.map(() => best.id) : defaultPlantsFor(c, product);
 }
 
 // Full Tailwind class strings so the compiler can see them.

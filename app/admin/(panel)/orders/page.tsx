@@ -6,10 +6,13 @@ import { StatusSelect } from "@/components/admin/StatusSelect";
 
 export const metadata = { title: "Orders" };
 
-export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
-  const { status } = await searchParams;
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
+  const { status, q = "" } = await searchParams;
   const filter = ORDER_STATUSES.includes(status as OrderStatus) ? (status as OrderStatus) : undefined;
-  const orders = listOrders(filter);
+  const needle = q.trim().toLowerCase();
+  const orders = listOrders(filter).filter(
+    (o) => !needle || [o.number, o.contact.name, o.contact.phone, o.contact.email, o.gift?.name ?? ""].some((v) => v.toLowerCase().includes(needle)),
+  );
   const { byStatus } = orderStats();
   const total = Object.values(byStatus).reduce((a, b) => a + (b ?? 0), 0);
 
@@ -19,6 +22,14 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         <h1 className="font-head text-4xl font-extrabold">Orders</h1>
         <p className="text-ink-soft">Orders placed at checkout. Stock was already taken off when they were placed.</p>
       </header>
+
+      <form className="flex max-w-md gap-2" role="search">
+        {filter && <input type="hidden" name="status" value={filter} />}
+        <input name="q" defaultValue={q} placeholder="Search number, name, phone or email" aria-label="Search orders" className="field py-2" />
+        <button type="submit" className="rounded-full border-2 border-ink bg-sky-soft px-4 font-bold hover:bg-sky">
+          Search
+        </button>
+      </form>
 
       <nav className="flex flex-wrap gap-2" aria-label="Filter by status">
         {[undefined, ...ORDER_STATUSES].map((s) => (

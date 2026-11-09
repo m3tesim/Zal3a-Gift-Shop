@@ -16,9 +16,17 @@ export default function PotsAdminPage() {
           <h1 className="font-head text-4xl font-extrabold">Pots</h1>
           <p className="text-ink-soft">Order here = order on the shop. Hidden pots stay saved but don&apos;t show on the site.</p>
         </div>
-        <Link href="/admin/pots/new" className="btn btn-pink">
-          + Add pot
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/pots/new" className="btn btn-pink">
+            + Add pot
+          </Link>
+          <Link href="/admin/pots/new?pots=2" className="btn btn-sun">
+            + Add combo (2 pots)
+          </Link>
+          <Link href="/admin/pots/new?pots=3" className="btn btn-white">
+            + Add triple (3 pots)
+          </Link>
+        </div>
       </header>
 
       <ul className="grid gap-3">
@@ -38,6 +46,11 @@ export default function PotsAdminPage() {
                   {p.name.en}
                 </Link>
                 {p.featured && <span className="ms-2 rounded-full bg-sun px-2 py-0.5 text-xs font-extrabold">★ Hero</span>}
+                {p.slots.length > 1 && (
+                  <span className="ms-2 rounded-full bg-lilac-soft px-2 py-0.5 text-xs font-extrabold">
+                    {p.slots.length === 2 ? "Combo" : p.slots.length === 3 ? "Triple" : "Set"} · {p.slots.length} pots
+                  </span>
+                )}
                 <p className="truncate text-sm text-ink-soft">
                   {p.kind.en} · {plantsSummary(c, plants, "en")}
                 </p>

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getOrder } from "@/lib/server/orders-repo";
+import { getOrder, orderEvents } from "@/lib/server/orders-repo";
+import { listEmails } from "@/lib/server/email/mailer";
+import { getCustomer } from "@/lib/server/customers";
 import { formatPrice, getDict } from "@/lib/i18n";
 import { waNumber } from "@/lib/orders";
 import { StatusSelect } from "@/components/admin/StatusSelect";
@@ -26,6 +28,10 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
   const o = getOrder(number);
   if (!o) notFound();
   const t = getDict("en");
+  const events = orderEvents(o.number);
+  const emails = listEmails({ orderNumber: o.number });
+  const account = o.customerId ? getCustomer(o.customerId) : null;
+  const fmt = (iso: string) => new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 
   return (
     <div className="grid gap-6">
@@ -44,7 +50,10 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
 
       <div className="grid gap-5 md:grid-cols-2">
         <Panel title="Customer">
-          <p className="font-bold">{o.contact.name}</p>
+          <p className="font-bold">
+            {o.contact.name}
+            {account && <span className="ms-2 rounded-full bg-lilac-soft px-2 py-0.5 text-xs font-extrabold">has an account</span>}
+          </p>
           <Phone phone={o.contact.phone} />
           {o.contact.email && (
             <a href={`mailto:${o.contact.email}`} className="underline underline-offset-4">
@@ -89,6 +98,37 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
         <Panel title="Payment">
           <p className="font-bold">{t.checkout.pay[o.payment].title}</p>
           <p className="text-ink-soft">{t.checkout.pay[o.payment].sub}</p>
+        </Panel>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2">
+        <Panel title="Timeline" sub="Changing the status above emails the customer.">
+          <ol className="grid gap-2">
+            {events.map((e, i) => (
+              <li key={i} className="flex items-center justify-between gap-3 rounded-xl bg-cream px-3 py-1.5">
+                <b className="capitalize">{t.status[e.status]}</b>
+                <span className="text-sm text-ink-soft">{fmt(e.at)}</span>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+        <Panel title="Emails to the customer" sub={o.contact.email ? `Sent to ${o.contact.email}` : "No email address on this order, so no updates are sent."}>
+          {emails.length === 0 ? (
+            <p className="text-ink-soft">None yet.</p>
+          ) : (
+            <ul className="grid gap-2">
+              {emails.map((e) => (
+                <li key={e.id}>
+                  <a href={`/api/admin/emails/${e.id}`} target="_blank" className="flex items-center justify-between gap-3 rounded-xl border-2 border-line px-3 py-1.5 hover:border-ink">
+                    <span className="truncate font-bold">{e.subject}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-extrabold ${e.status === "sent" ? "bg-lime" : e.status === "failed" ? "bg-pink text-white" : "bg-line"}`}>
+                      {e.status === "skipped" ? "not sent" : e.status}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </Panel>
       </div>
 

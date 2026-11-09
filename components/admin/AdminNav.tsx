@@ -9,7 +9,11 @@ const LINKS = [
   { href: "/admin", label: "Overview", emoji: "🏠" },
   { href: "/admin/pots", label: "Pots", emoji: "🐱" },
   { href: "/admin/plants", label: "Plants", emoji: "🌵" },
+  { href: "/admin/tags", label: "Tags & care", emoji: "🏷️" },
   { href: "/admin/orders", label: "Orders", emoji: "📦" },
+  { href: "/admin/reviews", label: "Reviews", emoji: "⭐" },
+  { href: "/admin/customers", label: "Customers", emoji: "👥" },
+  { href: "/admin/emails", label: "Emails", emoji: "✉️" },
   { href: "/admin/account", label: "Account", emoji: "🔑" },
 ];
 

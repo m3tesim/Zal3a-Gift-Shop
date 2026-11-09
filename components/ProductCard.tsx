@@ -7,6 +7,7 @@ import { useCatalog } from "./CatalogProvider";
 import { useAddToBag } from "./useAddToBag";
 import { Price } from "./Price";
 import { PlusIcon } from "./icons";
+import { Stars } from "./reviews/Stars";
 import { TINT, defaultPlantsFor, linePrice, maxQty, plantsSummary, variantImage, type Product } from "@/lib/catalog";
 
 const TILT = ["hover:-rotate-2", "hover:rotate-2", "hover:-rotate-1"];
@@ -22,6 +23,7 @@ export function ProductCard({ product: p, index = 0, plants: forced }: { product
   const out = maxQty(catalog, p, plants) === 0;
   const href = `/${locale}/pots/${p.id}${forced ? `?plants=${plants.join(",")}` : ""}`;
   const photo = (forced && variantImage(p, plants)) || p.image;
+  const rating = catalog.ratings[p.id];
 
   return (
     <article
@@ -63,6 +65,12 @@ export function ProductCard({ product: p, index = 0, plants: forced }: { product
           <p className="text-sm text-ink-soft">
             {p.kind[locale]} · {t.shop.with(plantsSummary(catalog, plants, locale))}
           </p>
+          {rating && (
+            <p className="mt-1 flex items-center gap-1.5 text-sm font-bold">
+              <Stars value={rating.avg} size={16} label={t.reviews.stars(rating.avg)} />
+              <span className="text-ink-soft">({rating.count})</span>
+            </p>
+          )}
         </div>
         <span className="shrink-0 rounded-full border-2 border-ink bg-paper px-3 py-1 font-extrabold whitespace-nowrap tabular-nums">
           <Price full={full} unit={unit} locale={locale} />

@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 
-/** Storefront pages are pre-rendered; call this after any catalog/stock change so visitors see it. */
+/** Call after any catalog/stock/review change so open pages in the browser refresh their data. */
 export function revalidateStore() {
   revalidatePath("/[locale]", "layout");
 }

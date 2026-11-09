@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getPlant } from "@/lib/server/catalog-repo";
+import { getPlant, readCare, readTags } from "@/lib/server/catalog-repo";
 import { PlantForm } from "@/components/admin/PlantForm";
 import { Notice } from "@/components/admin/ui";
 
@@ -34,7 +34,7 @@ export default async function EditPlantPage({
         )}
       </header>
       {created && <Notice kind="ok">Plant created! It now shows as an option on every pot.</Notice>}
-      <PlantForm key={plant.id} plant={plant} />
+      <PlantForm key={plant.id} plant={plant} tags={readTags()} care={readCare()} />
     </div>
   );
 }

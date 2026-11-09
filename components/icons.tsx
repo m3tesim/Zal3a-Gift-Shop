@@ -37,6 +37,17 @@ export const BagIcon = (p: P) => (
     <path d="M9 8a3 3 0 0 1 6 0" />
   </svg>
 );
+export const UserIcon = (p: P) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...p}>
+    <circle cx="12" cy="8.5" r="4" />
+    <path d="M4.5 20.5c1.2-4 4-6 7.5-6s6.3 2 7.5 6" />
+  </svg>
+);
+export const StarIcon = (p: P) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...p}>
+    <path d="M12 2.8l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 17l-5.8 3.3 1.4-6.4L2.7 9.5l6.5-.7z" fill="currentColor" stroke="var(--color-ink)" strokeWidth="1.6" strokeLinejoin="round" />
+  </svg>
+);
 export const ShuffleIcon = (p: P) => (
   <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} {...p}>
     <path d="M3 7h3c4 0 6 10 10 10h5M18 14l3 3-3 3M3 17h3c1.5 0 2.7-1.4 3.7-3M14.3 10c1-1.6 2.2-3 3.7-3h3M18 4l3 3-3 3" />

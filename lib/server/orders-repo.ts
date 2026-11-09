@@ -1,11 +1,13 @@
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { getDb, json, tx } from "./db";
+import { getDb, json, setting, tx } from "./db";
+import type { Customer } from "./customers";
 import { readCatalog } from "./catalog-repo";
 import { MAX_QTY, linePrice, plantOf, productOf, soldOut } from "@/lib/catalog";
 import { deliveryFee } from "@/lib/site";
 import {
   EG_MOBILE, EMAIL, ORDER_STATUSES, PAYMENTS, WRAPS, cleanPhone,
-  type Order, type OrderStatus, type PlaceOrderResult,
+  type Order, type OrderEvent, type OrderStatus, type PlaceOrderResult,
 } from "@/lib/orders";
 
 const text = (max: number) => z.string().trim().max(max);
@@ -34,7 +36,7 @@ const CheckoutSchema = z.object({
 });
 
 /** Validates against live prices + stock, decrements stock and saves the order, all in one transaction. */
-export function placeOrder(raw: unknown): PlaceOrderResult {
+export function placeOrder(raw: unknown, customer: Customer | null = null): PlaceOrderResult {
   const parsed = CheckoutSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid" };
   const input = parsed.data;
@@ -82,6 +84,7 @@ export function placeOrder(raw: unknown): PlaceOrderResult {
     const delivery = deliveryFee(input.address.governorate, subtotal);
     const order: Order = {
       number: "",
+      customerId: customer?.id ?? null,
       createdAt: new Date().toISOString(),
       status: "new",
       locale: L,
@@ -89,16 +92,17 @@ export function placeOrder(raw: unknown): PlaceOrderResult {
       subtotal,
       delivery,
       total: subtotal + delivery,
-      contact: input.contact,
+      contact: { ...input.contact, email: input.contact.email || customer?.email || "" },
       gift: input.gift,
       address: input.address,
       payment: input.payment,
     };
     const { lastInsertRowid } = db
-      .prepare("INSERT INTO orders (total, customer, data, created_at) VALUES (?, ?, '{}', ?)")
-      .run(order.total, order.contact.name, order.createdAt);
+      .prepare("INSERT INTO orders (total, customer, data, created_at, customer_id, email, phone) VALUES (?, ?, '{}', ?, ?, ?, ?)")
+      .run(order.total, order.contact.name, order.createdAt, order.customerId ?? null, order.contact.email, order.contact.phone);
     order.number = `ZL-${1000 + Number(lastInsertRowid)}`;
     db.prepare("UPDATE orders SET number = ?, data = ? WHERE id = ?").run(order.number, JSON.stringify(order), lastInsertRowid);
+    db.prepare("INSERT INTO order_events (order_number, status, at) VALUES (?, 'new', ?)").run(order.number, order.createdAt);
     return { ok: true, order };
   });
 }
@@ -118,9 +122,49 @@ export function getOrder(number: string) {
   return r ? toOrder(r) : null;
 }
 
+/** Returns the updated order when the status actually changed (so the caller can email the customer). */
 export function setOrderStatus(number: string, status: OrderStatus) {
-  if (!ORDER_STATUSES.includes(status)) return;
-  getDb().prepare("UPDATE orders SET status = ? WHERE number = ?").run(status, number);
+  if (!ORDER_STATUSES.includes(status)) return null;
+  return tx(() => {
+    const before = getOrder(number);
+    if (!before || before.status === status) return null;
+    const db = getDb();
+    db.prepare("UPDATE orders SET status = ? WHERE number = ?").run(status, number);
+    db.prepare("INSERT INTO order_events (order_number, status) VALUES (?, ?)").run(number, status);
+    return { ...before, status };
+  });
+}
+
+// node:sqlite rows have a null prototype, which React can't send to the browser, so copy them into plain objects.
+export const orderEvents = (number: string): OrderEvent[] =>
+  (getDb().prepare("SELECT status, at FROM order_events WHERE order_number = ? ORDER BY id").all(number) as OrderEvent[]).map((e) => ({
+    status: e.status,
+    at: e.at,
+  }));
+
+export function customerOrders(customerId: number) {
+  return (getDb().prepare("SELECT number, status, data FROM orders WHERE customer_id = ? ORDER BY id DESC").all(customerId) as Row[]).map(toOrder);
+}
+
+/** Guest tracking: the order number plus the phone used at checkout. */
+export function findOrderByPhone(number: string, phone: string) {
+  const o = getOrder(number.trim().toUpperCase());
+  const last9 = (v: string) => cleanPhone(v).slice(-9);
+  return o && last9(o.contact.phone) === last9(phone) && last9(phone).length === 9 ? o : null;
+}
+
+/** Signed links in emails let customers open their tracking page without typing anything. */
+const trackingSecret = () => setting("tracking_secret", () => randomBytes(32).toString("hex"));
+export const trackingToken = (number: string) => createHmac("sha256", trackingSecret()).update(number).digest("base64url").slice(0, 24);
+export function checkTrackingToken(number: string, token: string) {
+  const a = Buffer.from(trackingToken(number));
+  const b = Buffer.from(token);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+/** True when this customer has a delivered order containing the product (= may review it). */
+export function hasReceived(customerId: number, productId: string) {
+  return customerOrders(customerId).some((o) => o.status === "delivered" && o.items.some((i) => i.productId === productId));
 }
 
 export function orderStats() {

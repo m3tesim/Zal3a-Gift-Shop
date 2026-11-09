@@ -4,10 +4,9 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { savePotAction, deletePotAction, type PotInput } from "@/app/admin/actions";
-import { Chips, ImageUpload, LInput, Labeled, Notice, NumberInput, Panel, TextInput, Toggle } from "./ui";
-import { TINT, TINTS, VIBES, WHOS, applySale, type L, type Plant, type Product } from "@/lib/catalog";
+import { Chips, ImageUpload, LInput, Labeled, Notice, NumberInput, Panel, Select, TextInput, Toggle } from "./ui";
+import { TINT, TINTS, applySale, type L, type Plant, type Product, type Tag } from "@/lib/catalog";
 import { formatPrice } from "@/lib/i18n";
-import { en } from "@/lib/dictionaries/en";
 
 const blank: L = { en: "", ar: "" };
 export const toSlug = (s: string) =>
@@ -17,28 +16,58 @@ export const toSlug = (s: string) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
 
-function initial(p: Product | null, plants: Plant[]): PotInput {
+/** Starting values for a new single pot, combo (2) or triple (3). */
+function newPot(n: number, firstPlant: string): PotInput {
+  const set = n > 1;
+  return {
+    isNew: true,
+    id: "",
+    name: blank,
+    kind: set ? { en: `Set of ${n}`, ar: `طقم ${n}` } : blank,
+    desc: blank,
+    badge: n === 2 ? { en: "Combo deal", ar: "عرض كومبو" } : n === 3 ? { en: "Triple deal", ar: "عرض التلاتة" } : blank,
+    styled: blank,
+    price: 0, salePercent: 0, stock: 10,
+    slots: set ? Array.from({ length: n }, (_, i) => ({ en: `Pot ${i + 1}`, ar: `القصرية ${i + 1}` })) : [{ en: "Pot", ar: "القصرية" }],
+    defaultPlants: Array(n).fill(firstPlant),
+    tint: "pink", image: "", pos: "50% 50%",
+    vibes: [], recipients: [],
+    specs: [
+      { label: { en: "Height", ar: "الطول" }, value: blank },
+      ...(set
+        ? [{
+            label: { en: "In the box", ar: "في العلبة" },
+            value: {
+              en: `${n} pots, ${n} plants, care card`,
+              ar: n === 2 ? "قصريتين، زرعتين، كارت عناية" : `${n} قصاري، ${n} زرعات، كارت عناية`,
+            },
+          }]
+        : []),
+    ],
+    visible: true, featured: false,
+  };
+}
+
+function initial(p: Product | null, plants: Plant[], potsInSet: number): PotInput {
   const firstPlant = plants.find((x) => !x.potOnly)?.id ?? plants[0]?.id ?? "";
-  if (!p)
-    return {
-      isNew: true,
-      id: "",
-      name: blank, kind: blank, desc: blank, badge: blank, styled: blank,
-      price: 0, salePercent: 0, stock: 10,
-      slots: [{ en: "Pot", ar: "القصرية" }],
-      defaultPlants: [firstPlant],
-      tint: "pink", image: "", pos: "50% 50%",
-      vibes: [], recipients: [],
-      specs: [{ label: { en: "Height", ar: "الطول" }, value: blank }],
-      visible: true, featured: false,
-    };
+  if (!p) return newPot(potsInSet, firstPlant);
   const { variants: _v, sort: _s, ...rest } = p;
   return { ...rest, isNew: false };
 }
 
-export function PotForm({ product, plants }: { product: Product | null; plants: Plant[] }) {
+export function PotForm({
+  product,
+  plants,
+  tags,
+  potsInSet = 1,
+}: {
+  product: Product | null;
+  plants: Plant[];
+  tags: Tag[];
+  potsInSet?: number;
+}) {
   const router = useRouter();
-  const [f, setF] = useState<PotInput>(() => initial(product, plants));
+  const [f, setF] = useState<PotInput>(() => initial(product, plants, potsInSet));
   const [slugTouched, setSlugTouched] = useState(!!product);
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
@@ -142,7 +171,10 @@ export function PotForm({ product, plants }: { product: Product | null; plants: 
 
       <Panel title="Price & stock">
         <div className="grid gap-4 sm:grid-cols-3">
-          <Labeled label="Pot price (EGP)" hint="For the pot(s) only. Plant prices are added on top.">
+          <Labeled
+            label={f.slots.length > 1 ? `Price for all ${f.slots.length} pots (EGP)` : "Pot price (EGP)"}
+            hint={f.slots.length > 1 ? "For the whole set, pots only. Each pot's plant price is added on top." : "For the pot only. The plant price is added on top."}
+          >
             <NumberInput value={f.price} onChange={(n) => set("price", n ?? 0)} />
           </Labeled>
           <Labeled label="Sale (% off)" hint="0 = no sale. Applies to pot + plants.">
@@ -188,17 +220,16 @@ export function PotForm({ product, plants }: { product: Product | null; plants: 
                 onChange={(v) => setF((s) => ({ ...s, slots: s.slots.map((x, j) => (j === i ? v : x)) }))}
               />
               <Labeled label="Default plant">
-                <select
+                <Select
                   value={f.defaultPlants[i]}
                   onChange={(e) => setF((s) => ({ ...s, defaultPlants: s.defaultPlants.map((x, j) => (j === i ? e.target.value : x)) }))}
-                  className="field py-2"
                 >
                   {plants.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name.en} (+{formatPrice(p.price, "en")}){p.visible ? "" : " · hidden"}
                     </option>
                   ))}
-                </select>
+                </Select>
               </Labeled>
             </li>
           ))}
@@ -216,8 +247,19 @@ export function PotForm({ product, plants }: { product: Product | null; plants: 
       </Panel>
 
       <Panel title="Gift matchmaker" sub="The matchmaker on the home page ranks pots by these tags: vibe first, then who it's for.">
-        <Chips label="Vibe" options={VIBES.map((v) => ({ key: v, label: en.matcher.vibe[v] }))} value={f.vibes} onChange={(v) => set("vibes", v)} />
-        <Chips label="Great gift for" options={WHOS.map((w) => ({ key: w, label: en.matcher.who[w] }))} value={f.recipients} onChange={(v) => set("recipients", v)} />
+        <Chips
+          label="Vibe"
+          options={tags.filter((t) => t.kind === "vibe").map((t) => ({ key: t.id, label: `${t.emoji} ${t.label.en}` }))}
+          value={f.vibes}
+          onChange={(v) => set("vibes", v)}
+        />
+        <Chips
+          label="Best for"
+          options={tags.filter((t) => t.kind === "who").map((t) => ({ key: t.id, label: `${t.emoji} ${t.label.en}` }))}
+          value={f.recipients}
+          onChange={(v) => set("recipients", v)}
+        />
+        <p className="text-sm text-ink-soft">Add more options under Tags &amp; care.</p>
       </Panel>
 
       <Panel title="Plant tag details" sub="The spec list on the product page. Rows with no label are skipped.">

@@ -6,16 +6,10 @@ import { getDict, isLocale } from "@/lib/i18n";
 import { TINT, plantOf, soldOut } from "@/lib/catalog";
 import { readCatalog } from "@/lib/server/catalog-repo";
 import { ProductCard } from "@/components/ProductCard";
-import { CareDots } from "@/components/CareDots";
+import { PlantCare } from "@/components/PlantCare";
 import { BackIcon, PlantIcon } from "@/components/icons";
 
 type Props = { params: Promise<{ locale: string; id: string }> };
-
-export function generateStaticParams() {
-  return readCatalog()
-    .plants.filter((p) => !p.potOnly)
-    .map((p) => ({ id: p.id }));
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
@@ -75,10 +69,12 @@ export default async function PlantPage({ params }: Props) {
             <p className="max-w-[48ch] text-xl">{pl.blurb[locale]}</p>
             <div className="sticker grid gap-4 p-5">
               <h2 className="font-head text-xl font-extrabold">{t.plantPage.care}</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <CareDots kind="sun" level={pl.sun} label={t.product.sun} hint={t.product.sunLevels[pl.sun]} />
-                <CareDots kind="water" level={pl.water} label={t.product.water} hint={t.product.waterLevels[pl.water]} />
-              </div>
+              <PlantCare
+                plant={pl}
+                catalog={catalog}
+                locale={locale}
+                labels={{ sun: t.product.sun, water: t.product.water, bestFor: t.plants.bestFor, vibe: t.plants.vibe }}
+              />
             </div>
           </div>
         </div>

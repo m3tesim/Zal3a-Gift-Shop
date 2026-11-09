@@ -101,11 +101,28 @@ export function ThankYou() {
               <SocialIcon id="whatsapp" />
               {t.thanks.whatsapp}
             </a>
+            {order.trackToken && (
+              <Link href={`/${locale}/track?order=${order.number}&t=${order.trackToken}`} className="btn btn-sun">
+                {t.thanks.track}
+              </Link>
+            )}
             <Link href={`/${locale}`} className="btn btn-white">
               {t.thanks.keep}
             </Link>
           </div>
         </div>
+
+        {!order.customerId && (
+          <div className="sticker flex flex-wrap items-center justify-between gap-4 bg-lilac-soft p-5">
+            <div className="grid gap-1">
+              <b className="font-head text-xl">{t.thanks.joinTitle}</b>
+              <p className="text-ink-soft">{t.thanks.joinText}</p>
+            </div>
+            <Link href={`/${locale}/account/register`} className="btn btn-pink">
+              {t.thanks.join}
+            </Link>
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sticker grid content-start gap-1 bg-sky-soft p-5">

@@ -6,7 +6,7 @@ import type { L } from "@/lib/catalog";
 
 export function Panel({ title, sub, children, className = "" }: { title?: string; sub?: string; children: React.ReactNode; className?: string }) {
   return (
-    <section className={`grid gap-4 rounded-3xl border-[3px] border-ink bg-paper p-5 shadow-pop-sm ${className}`}>
+    <section className={`grid content-start gap-4 rounded-3xl border-[3px] border-ink bg-paper p-5 shadow-pop-sm ${className}`}>
       {title && (
         <header className="grid gap-0.5">
           <h2 className="font-head text-xl font-extrabold">{title}</h2>
@@ -40,6 +40,11 @@ const inputCls = "w-full rounded-xl border-[3px] border-line bg-paper px-3 py-2 
 export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   const id = useFieldId();
   return <input id={id} {...props} className={`${inputCls} ${props.className ?? ""}`} />;
+}
+
+export function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  const id = useFieldId();
+  return <select id={id} {...props} className={`${inputCls} ${props.className ?? ""}`} />;
 }
 
 export function NumberInput({

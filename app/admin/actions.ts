@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import {
@@ -12,9 +13,14 @@ import {
 } from "@/lib/server/users";
 import * as repo from "@/lib/server/catalog-repo";
 import { setOrderStatus } from "@/lib/server/orders-repo";
+import * as taxonomy from "@/lib/server/taxonomy-repo";
+import * as reviews from "@/lib/server/reviews-repo";
+import { createCampaign, renderOffer, runCampaign } from "@/lib/server/campaigns";
+import { emailConfigured, sendEmail } from "@/lib/server/email/mailer";
+import { notifyOrderStatus } from "@/lib/server/notify";
 import { deleteImage } from "@/lib/server/storage";
 import { revalidateStore } from "@/lib/server/revalidate";
-import { PLANT_ICONS, TINTS, VIBES, WHOS } from "@/lib/catalog";
+import { PLANT_ICONS, TINTS } from "@/lib/catalog";
 import { ORDER_STATUSES } from "@/lib/orders";
 
 export type ActionResult = { ok: true; id?: string } | { ok: false; error: string };
@@ -63,6 +69,13 @@ const LReq = (max = 300) =>
 const slug = z.string().regex(/^[a-z0-9][a-z0-9-]{1,39}$/, "use 2–40 lowercase letters, numbers or dashes");
 const image = z.string().regex(/^\/(uploads|img)\/[\w.-]+$/, "upload an image");
 const stock = z.number().int().min(0).max(100000).nullable();
+const tagIds = z.array(z.string().max(40)).max(30);
+
+/** Drop any tag ids that no longer exist (e.g. deleted while the form was open). */
+function knownTags(kind: "who" | "vibe", ids: string[]) {
+  const all = new Set(repo.readTags().filter((t) => t.kind === kind).map((t) => t.id));
+  return ids.filter((id) => all.has(id));
+}
 
 /* ───────────── pots ───────────── */
 
@@ -83,8 +96,8 @@ const PotSchema = z
     tint: z.enum(TINTS),
     image,
     pos: z.string().regex(/^\d{1,3}% \d{1,3}%$/),
-    vibes: z.array(z.enum(VIBES)),
-    recipients: z.array(z.enum(WHOS)),
+    vibes: tagIds,
+    recipients: tagIds,
     specs: z.array(z.object({ label: L(60), value: L(120) })).max(12),
     visible: z.boolean(),
     featured: z.boolean(),
@@ -105,7 +118,15 @@ export async function savePotAction(input: PotInput): Promise<ActionResult> {
   const plants = repo.readCatalog({ includeHidden: true }).plants;
   if (p.defaultPlants.some((id) => !plants.some((x) => x.id === id))) return fail("Pick a default plant for every pot");
 
-  repo.saveProduct({ ...p, specs: p.specs.filter((s) => s.label.en || s.label.ar) }, isNew);
+  repo.saveProduct(
+    {
+      ...p,
+      vibes: knownTags("vibe", p.vibes),
+      recipients: knownTags("who", p.recipients),
+      specs: p.specs.filter((s) => s.label.en || s.label.ar),
+    },
+    isNew,
+  );
 
   if (existing) {
     // Clean up files that are no longer referenced.
@@ -147,14 +168,15 @@ const PlantSchema = z.object({
   latin: L(80),
   blurb: LReq(600),
   price: z.number().int().min(0).max(1_000_000),
-  sun: z.number().int().min(0).max(3),
-  water: z.number().int().min(0).max(3),
+  sun: z.string().max(40).nullable(),
+  water: z.string().max(40).nullable(),
   tint: z.enum(TINTS),
   icon: z.enum(PLANT_ICONS),
   image: image.nullable(),
   stock,
   visible: z.boolean(),
-  recipients: z.array(z.enum(WHOS)),
+  recipients: tagIds,
+  vibes: tagIds,
 });
 
 export type PlantInput = z.input<typeof PlantSchema>;
@@ -169,7 +191,13 @@ export async function savePlantAction(input: PlantInput): Promise<ActionResult> 
   if (isNew && existing) return fail(`A plant with the link name "${p.id}" already exists`);
   if (!isNew && !existing) return fail("This plant no longer exists");
 
-  repo.savePlant({ ...p, potOnly: existing?.potOnly ?? false, sort: 0 }, isNew);
+  const care = repo.readCare();
+  const has = (kind: "sun" | "water", id: string | null) => id === null || care.some((o) => o.kind === kind && o.id === id);
+  if (!has("sun", p.sun) || !has("water", p.water)) return fail("Pick sun and watering from the list");
+  repo.savePlant(
+    { ...p, recipients: knownTags("who", p.recipients), vibes: knownTags("vibe", p.vibes), potOnly: existing?.potOnly ?? false, sort: 0 },
+    isNew,
+  );
   if (existing?.image && existing.image !== p.image) await deleteImage(existing.image);
   refreshAll();
   return { ok: true, id: p.id };
@@ -228,7 +256,9 @@ export async function setOrderStatusAction(number: string, status: string): Prom
   await requireAdmin();
   const s = z.enum(ORDER_STATUSES).safeParse(status);
   if (!s.success) return fail("Unknown status");
-  setOrderStatus(number, s.data);
+  const changed = setOrderStatus(number, s.data);
+  // Email the customer about the new step without making the admin wait for the mail server.
+  if (changed) after(() => notifyOrderStatus(changed, s.data));
   revalidatePath("/admin", "layout");
   return { ok: true };
 }
@@ -271,4 +301,143 @@ export async function removeAdminAction(id: number): Promise<ActionResult> {
   deleteUser(id);
   revalidatePath("/admin/account");
   return { ok: true };
+}
+
+/* ───────────── tags & care options ───────────── */
+
+const TagSchema = z.object({
+  isNew: z.boolean(),
+  kind: z.enum(["who", "vibe"]),
+  id: slug,
+  label: LReq(40),
+  emoji: z.string().trim().max(8),
+  line: L(200),
+  visible: z.boolean(),
+});
+export type TagInput = z.input<typeof TagSchema>;
+
+export async function saveTagAction(input: TagInput): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = TagSchema.safeParse(input);
+  if (!parsed.success) return fail(firstIssue(parsed.error));
+  const { isNew, ...t } = parsed.data;
+  if (isNew && taxonomy.tagExists(t.kind, t.id)) return fail(`“${t.id}” already exists`);
+  taxonomy.saveTag(t, isNew);
+  refreshAll();
+  return { ok: true, id: t.id };
+}
+
+export async function deleteTagAction(kind: "who" | "vibe", id: string): Promise<ActionResult> {
+  await requireAdmin();
+  taxonomy.deleteTag(z.enum(["who", "vibe"]).parse(kind), id);
+  refreshAll();
+  return { ok: true };
+}
+
+const CareSchema = z.object({
+  isNew: z.boolean(),
+  kind: z.enum(["sun", "water"]),
+  id: slug,
+  label: LReq(80),
+  level: z.number().int().min(0).max(3),
+});
+export type CareInput = z.input<typeof CareSchema>;
+
+export async function saveCareAction(input: CareInput): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = CareSchema.safeParse(input);
+  if (!parsed.success) return fail(firstIssue(parsed.error));
+  const { isNew, ...o } = parsed.data;
+  if (isNew && taxonomy.careExists(o.kind, o.id)) return fail(`“${o.id}” already exists`);
+  taxonomy.saveCare(o, isNew);
+  refreshAll();
+  return { ok: true, id: o.id };
+}
+
+export async function deleteCareAction(kind: "sun" | "water", id: string): Promise<ActionResult> {
+  await requireAdmin();
+  const users = taxonomy.deleteCare(z.enum(["sun", "water"]).parse(kind), id);
+  if (users.length) return fail(`Still used by: ${users.join(", ")}. Change those plants first.`);
+  refreshAll();
+  return { ok: true };
+}
+
+export async function moveListItemAction(table: "tags" | "care_options", kind: string, id: string, dir: -1 | 1): Promise<ActionResult> {
+  await requireAdmin();
+  const t = z.enum(["tags", "care_options"]).parse(table);
+  const k = (t === "tags" ? z.enum(["who", "vibe"]) : z.enum(["sun", "water"])).parse(kind);
+  taxonomy.moveListItem(t, k, id, dir === -1 ? -1 : 1);
+  refreshAll();
+  return { ok: true };
+}
+
+/* ───────────── reviews ───────────── */
+
+const ReviewSchema = z.object({
+  author: z.string().trim().min(1).max(60),
+  rating: z.number().int().min(1).max(5),
+  body: z.string().trim().min(1).max(2000),
+  reply: z.string().trim().max(1000),
+  visible: z.boolean(),
+});
+
+export async function updateReviewAction(id: number, input: z.input<typeof ReviewSchema>): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = ReviewSchema.safeParse(input);
+  if (!parsed.success) return fail(firstIssue(parsed.error));
+  reviews.updateReview(id, parsed.data);
+  refreshAll();
+  return { ok: true };
+}
+
+export async function deleteReviewAction(id: number): Promise<ActionResult> {
+  await requireAdmin();
+  reviews.deleteReview(id);
+  refreshAll();
+  return { ok: true };
+}
+
+/* ───────────── offer emails ───────────── */
+
+const CampaignSchema = z.object({
+  subject: LReq(150),
+  body: LReq(5000),
+  ctaLabel: L(40),
+  ctaUrl: z.union([z.literal(""), z.string().regex(/^(https?:\/\/|\/)[^\s]*$/, "start the link with / or https://")]),
+  image: image.nullable(),
+});
+export type CampaignFormInput = z.input<typeof CampaignSchema>;
+
+export async function previewOfferAction(input: CampaignFormInput, locale: "en" | "ar") {
+  await requireAdmin();
+  const parsed = CampaignSchema.safeParse(input);
+  const c = parsed.success ? parsed.data : { ...input, image: input.image ?? null };
+  return renderOffer(c as z.output<typeof CampaignSchema>, locale, "#unsubscribe");
+}
+
+export async function sendTestOfferAction(input: CampaignFormInput): Promise<ActionResult> {
+  const me = await requireAdmin();
+  const parsed = CampaignSchema.safeParse(input);
+  if (!parsed.success) return fail(firstIssue(parsed.error));
+  for (const locale of ["en", "ar"] as const) {
+    await sendEmail({
+      to: me.email,
+      subject: `[TEST] ${parsed.data.subject[locale]}`,
+      html: renderOffer(parsed.data, locale, "#unsubscribe"),
+      kind: "test",
+    });
+  }
+  revalidatePath("/admin/emails");
+  return emailConfigured() ? { ok: true } : fail("Saved to the outbox below, but not sent: email isn't set up yet.");
+}
+
+export async function sendOfferAction(input: CampaignFormInput): Promise<ActionResult> {
+  await requireAdmin();
+  if (!emailConfigured()) return fail("Email isn't set up yet. Add your SMTP settings to .env.local first.");
+  const parsed = CampaignSchema.safeParse(input);
+  if (!parsed.success) return fail(firstIssue(parsed.error));
+  const id = createCampaign(parsed.data);
+  after(() => runCampaign(id));
+  revalidatePath("/admin/emails");
+  return { ok: true, id: String(id) };
 }

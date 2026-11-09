@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getDict, type Locale } from "@/lib/i18n";
-import { TINT, soldOut, type Plant } from "@/lib/catalog";
+import { TINT, careOf, soldOut, type Catalog } from "@/lib/catalog";
 import { ArrowIcon, PlantIcon } from "../icons";
 import { CareDots } from "../CareDots";
 
-export function Roommates({ locale, plants }: { locale: Locale; plants: Plant[] }) {
+export function Roommates({ locale, catalog }: { locale: Locale; catalog: Catalog }) {
   const t = getDict(locale);
   return (
     <section id="plants" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-14">
@@ -17,7 +17,7 @@ export function Roommates({ locale, plants }: { locale: Locale; plants: Plant[] 
         <p className="max-w-[38ch] text-lg text-ink-soft">{t.plants.sub}</p>
       </div>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {plants.map((pl) => {
+        {catalog.plants.filter((pl) => !pl.potOnly).map((pl) => {
           const out = soldOut(pl);
           return (
             <Link
@@ -53,8 +53,8 @@ export function Roommates({ locale, plants }: { locale: Locale; plants: Plant[] 
               <p className="text-ink-soft">{pl.blurb[locale]}</p>
               <div className="flex flex-wrap items-end justify-between gap-3 border-t-[3px] border-dashed border-ink/20 pt-3">
                 <div className="flex gap-5">
-                  <CareDots kind="sun" level={pl.sun} label={t.plants.sun} />
-                  <CareDots kind="water" level={pl.water} label={t.plants.water} />
+                  <CareDots kind="sun" level={careOf(catalog, "sun", pl.sun)?.level ?? 0} label={t.plants.sun} />
+                  <CareDots kind="water" level={careOf(catalog, "water", pl.water)?.level ?? 0} label={t.plants.water} />
                 </div>
                 <span className="inline-flex items-center gap-1.5 font-extrabold text-pink">
                   {t.plants.cta}

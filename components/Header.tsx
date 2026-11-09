@@ -5,7 +5,8 @@ import { useEffect, useState } from "react";
 import { useI18n } from "./I18nProvider";
 import { LangSwitch } from "./LangSwitch";
 import { Logo } from "./Logo";
-import { BagIcon } from "./icons";
+import { BagIcon, UserIcon } from "./icons";
+import { useMe } from "./account/useMe";
 import { cartCount, useShop } from "@/lib/store";
 
 export function Header() {
@@ -13,6 +14,7 @@ export function Header() {
   const count = useShop((s) => cartCount(s.lines));
   const setCartOpen = useShop((s) => s.setCartOpen);
   const [scrolled, setScrolled] = useState(false);
+  const me = useMe();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -47,6 +49,14 @@ export function Header() {
           ))}
         </nav>
         <LangSwitch />
+        <Link
+          href={`/${locale}/account`}
+          aria-label={me ? t.nav.account : t.nav.signIn}
+          className="inline-flex h-11 items-center gap-2 rounded-full border-[3px] border-ink bg-paper px-3 font-extrabold transition-transform hover:-rotate-2 hover:bg-lime-soft"
+        >
+          <UserIcon />
+          <span className="hidden max-w-24 truncate lg:inline">{me ? me.name.split(" ")[0] : t.nav.signIn}</span>
+        </Link>
         <button
           type="button"
           onClick={() => setCartOpen(true)}

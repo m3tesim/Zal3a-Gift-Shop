@@ -1,5 +1,5 @@
 import { getDb, json, tx } from "./db";
-import type { Catalog, L, Plant, Product } from "@/lib/catalog";
+import type { CareOption, Catalog, L, Plant, Product, Rating, Tag } from "@/lib/catalog";
 
 type Row = Record<string, unknown>;
 const EMPTY_L: L = { en: "", ar: "" };
@@ -11,8 +11,8 @@ function toPlant(r: Row): Plant {
     latin: json(r.latin, EMPTY_L),
     blurb: json(r.blurb, EMPTY_L),
     price: r.price as number,
-    sun: r.sun as number,
-    water: r.water as number,
+    sun: (r.sun_option as string) ?? null,
+    water: (r.water_option as string) ?? null,
     tint: r.tint as Plant["tint"],
     icon: r.icon as Plant["icon"],
     image: (r.image as string) ?? null,
@@ -20,8 +20,38 @@ function toPlant(r: Row): Plant {
     visible: !!r.visible,
     potOnly: !!r.pot_only,
     recipients: json(r.recipients, []),
+    vibes: json(r.vibes, []),
     sort: r.sort as number,
   };
+}
+
+const toTag = (r: Row): Tag => ({
+  kind: r.kind as Tag["kind"],
+  id: r.id as string,
+  label: json(r.label, EMPTY_L),
+  emoji: r.emoji as string,
+  line: json(r.line, EMPTY_L),
+  visible: !!r.visible,
+  sort: r.sort as number,
+});
+
+const toCare = (r: Row): CareOption => ({
+  kind: r.kind as CareOption["kind"],
+  id: r.id as string,
+  label: json(r.label, EMPTY_L),
+  level: r.level as number,
+  sort: r.sort as number,
+});
+
+export const readTags = () => (getDb().prepare("SELECT * FROM tags ORDER BY kind, sort, id").all() as Row[]).map(toTag);
+export const readCare = () => (getDb().prepare("SELECT * FROM care_options ORDER BY kind, sort, id").all() as Row[]).map(toCare);
+
+/** Average rating + count of visible reviews, per product. */
+export function readRatings(): Record<string, Rating> {
+  const rows = getDb()
+    .prepare("SELECT product_id AS id, AVG(rating) AS avg, COUNT(*) AS n FROM reviews WHERE visible = 1 GROUP BY product_id")
+    .all() as { id: string; avg: number; n: number }[];
+  return Object.fromEntries(rows.map((r) => [r.id, { avg: Math.round(r.avg * 10) / 10, count: r.n }]));
 }
 
 function toProduct(r: Row, variants: Record<string, string>): Product {
@@ -63,6 +93,9 @@ export function readCatalog({ includeHidden = false } = {}): Catalog {
       toProduct(r, variants[r.id as string] ?? {}),
     ),
     plants: (db.prepare(`SELECT * FROM plants ${where} ORDER BY sort, id`).all() as Row[]).map(toPlant),
+    tags: readTags(),
+    care: readCare(),
+    ratings: readRatings(),
   };
 }
 
@@ -94,6 +127,7 @@ export function savePlant(p: Plant, isNew: boolean) {
     $price: p.price,
     $sun: p.sun,
     $water: p.water,
+    $vibes: JSON.stringify(p.vibes),
     $tint: p.tint,
     $icon: p.icon,
     $image: p.image,
@@ -104,13 +138,13 @@ export function savePlant(p: Plant, isNew: boolean) {
   };
   if (isNew) {
     db.prepare(
-      `INSERT INTO plants (id, name, latin, blurb, price, sun, water, tint, icon, image, stock, visible, pot_only, recipients, sort)
-       VALUES ($id, $name, $latin, $blurb, $price, $sun, $water, $tint, $icon, $image, $stock, $visible, $pot_only, $recipients, $sort)`,
+      `INSERT INTO plants (id, name, latin, blurb, price, sun_option, water_option, tint, icon, image, stock, visible, pot_only, recipients, vibes, sort)
+       VALUES ($id, $name, $latin, $blurb, $price, $sun, $water, $tint, $icon, $image, $stock, $visible, $pot_only, $recipients, $vibes, $sort)`,
     ).run({ ...values, $sort: nextSort("plants") });
   } else {
     db.prepare(
-      `UPDATE plants SET name=$name, latin=$latin, blurb=$blurb, price=$price, sun=$sun, water=$water, tint=$tint, icon=$icon,
-       image=$image, stock=$stock, visible=$visible, pot_only=$pot_only, recipients=$recipients, updated_at=datetime('now') WHERE id=$id`,
+      `UPDATE plants SET name=$name, latin=$latin, blurb=$blurb, price=$price, sun_option=$sun, water_option=$water, tint=$tint, icon=$icon,
+       image=$image, stock=$stock, visible=$visible, pot_only=$pot_only, recipients=$recipients, vibes=$vibes, updated_at=datetime('now') WHERE id=$id`,
     ).run(values);
   }
 }

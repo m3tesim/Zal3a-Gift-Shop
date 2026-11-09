@@ -8,22 +8,7 @@ import { useAddToBag } from "../useAddToBag";
 import { useCatalog } from "../CatalogProvider";
 import { Price } from "../Price";
 import { ArrowIcon, PlantIcon, ShuffleIcon, StarShape } from "../icons";
-import { TINT, linePrice, plantsSummary, rankMatches, suggestPlants, variantImage, type Vibe, type Who } from "@/lib/catalog";
-
-const WHO: { key: Who; emoji: string }[] = [
-  { key: "bestie", emoji: "👯" },
-  { key: "mom", emoji: "💐" },
-  { key: "coworker", emoji: "💼" },
-  { key: "crush", emoji: "💘" },
-  { key: "kid", emoji: "🧸" },
-  { key: "me", emoji: "🙋" },
-];
-const VIBES: { key: Vibe; emoji: string }[] = [
-  { key: "giggly", emoji: "😂" },
-  { key: "cozy", emoji: "😴" },
-  { key: "cute", emoji: "🥺" },
-  { key: "quirky", emoji: "🦖" },
-];
+import { TINT, linePrice, plantsSummary, rankMatches, suggestPlants, tagsOf, variantImage, type Vibe, type Who } from "@/lib/catalog";
 
 function Chip({ on, onClick, emoji, label, onClass }: { on: boolean; onClick: () => void; emoji: string; label: string; onClass: string }) {
   return (
@@ -52,7 +37,10 @@ export function GiftMatcher() {
   // Best matches first (both answers, then vibe, then recipient), then everyone else, so "show me another" keeps going.
   const ranked = who && vibe ? rankMatches(catalog, who, vibe) : [];
   const match = ranked.length ? ranked[pick % ranked.length] : null;
-  const plants = match && who ? suggestPlants(catalog, match, who) : [];
+  const plants = match && who ? suggestPlants(catalog, match, who, vibe ?? undefined) : [];
+  const whoTags = tagsOf(catalog, "who").filter((x) => x.visible);
+  const vibeTags = tagsOf(catalog, "vibe").filter((x) => x.visible);
+  const line = whoTags.find((x) => x.id === who)?.line[locale];
   const price = match ? linePrice(catalog, match, plants) : null;
 
   return (
@@ -71,16 +59,16 @@ export function GiftMatcher() {
               {t.matcher.whoQ}
             </legend>
             <div className="flex flex-wrap gap-2">
-              {WHO.map((w) => (
+              {whoTags.map((w) => (
                 <Chip
-                  key={w.key}
-                  on={who === w.key}
+                  key={w.id}
+                  on={who === w.id}
                   onClick={() => {
-                    setWho(w.key);
+                    setWho(w.id);
                     setPick(0);
                   }}
                   emoji={w.emoji}
-                  label={t.matcher.who[w.key]}
+                  label={w.label[locale]}
                   onClass="bg-sun"
                 />
               ))}
@@ -92,16 +80,16 @@ export function GiftMatcher() {
               {t.matcher.vibeQ}
             </legend>
             <div className="flex flex-wrap gap-2">
-              {VIBES.map((v) => (
+              {vibeTags.map((v) => (
                 <Chip
-                  key={v.key}
-                  on={vibe === v.key}
+                  key={v.id}
+                  on={vibe === v.id}
                   onClick={() => {
-                    setVibe(v.key);
+                    setVibe(v.id);
                     setPick(0);
                   }}
                   emoji={v.emoji}
-                  label={t.matcher.vibe[v.key]}
+                  label={v.label[locale]}
                   onClass="bg-sky"
                 />
               ))}
@@ -127,7 +115,7 @@ export function GiftMatcher() {
               <span className="w-fit rounded-full border-2 border-ink bg-paper px-3 py-1 text-sm font-bold">
                 {t.matcher.comesWith(plantsSummary(catalog, plants, locale))}
               </span>
-              <p className="text-lg font-bold">{t.matcher.lines[who]}</p>
+              {line && <p className="text-lg font-bold">{line}</p>}
               <div className="flex flex-wrap gap-2">
                 <button type="button" className="btn btn-pink flex-1" onClick={() => addToBag(match.id, plants)}>
                   {t.matcher.add}

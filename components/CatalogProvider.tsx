@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect } from "react";
 import { maxQty, plantOf, productOf, type Catalog } from "@/lib/catalog";
 import { useShop, type CartLine } from "@/lib/store";
 
-const CatalogContext = createContext<Catalog>({ products: [], plants: [] });
+const CatalogContext = createContext<Catalog>({ products: [], plants: [], tags: [], care: [], ratings: {} });
 
 /** How many of a cart line can still be bought (0 = remove it). */
 export function lineLimit(c: Catalog, l: CartLine) {
