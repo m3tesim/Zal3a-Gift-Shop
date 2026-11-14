@@ -54,6 +54,7 @@ export type Product = {
   stock: number | null;
   slots: L[]; // one label per pot in the set
   defaultPlants: string[]; // one plant id per slot
+  fixedPlants: boolean; // sold only with defaultPlants, customers can't swap
   tint: Tint;
   image: string;
   pos: string; // CSS object-position for the main photo
@@ -101,6 +102,7 @@ export const pickablePlants = (catalog: Catalog) => catalog.plants.filter((plant
 
 /** The product's default plants, swapping out any that are hidden or sold out. */
 export function defaultPlantsFor(catalog: Catalog, product: Product) {
+  if (product.fixedPlants) return product.defaultPlants;
   const ok = pickablePlants(catalog);
   const fallback = ok.find((plant) => !plant.potOnly) ?? ok[0];
   return product.slots.map((_slot, slotIndex) => {
@@ -111,8 +113,12 @@ export function defaultPlantsFor(catalog: Catalog, product: Product) {
 
 export const variantImage = (product: Product, plants: string[]) => product.variants[comboKey(plants)] ?? null;
 
+export const allowsPlants = (product: Product, plants: string[]) =>
+  plants.length === product.slots.length && (!product.fixedPlants || comboKey(plants) === comboKey(product.defaultPlants));
+
 /** Most a customer can add: limited by pot stock and by each plant's stock. */
 export function maxQty(catalog: Catalog, product: Product, plants: string[]) {
+  if (!allowsPlants(product, plants) || plants.some((id) => !plantOf(catalog, id))) return 0;
   let max = MAX_QTY;
   if (product.stock !== null) max = Math.min(max, product.stock);
   const counts = new Map<string, number>();
@@ -143,6 +149,7 @@ export function rankMatches(catalog: Catalog, who: Who, vibe: Vibe) {
 
 /** Pick the plant that best suits the person and vibe (falls back to the pot's defaults). */
 export function suggestPlants(catalog: Catalog, product: Product, who: Who, vibe?: Vibe) {
+  if (product.fixedPlants) return product.defaultPlants;
   const score = (plant: Plant) => (plant.recipients.includes(who) ? 2 : 0) + (vibe && plant.vibes.includes(vibe) ? 1 : 0);
   const best = pickablePlants(catalog)
     .filter((plant) => !plant.potOnly && score(plant) > 0)

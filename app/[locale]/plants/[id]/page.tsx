@@ -25,6 +25,7 @@ export default async function PlantPage({ params }: Props) {
   if (!isLocale(locale) || !plant || plant.potOnly) notFound();
   const dictionary = getDict(locale);
   const out = soldOut(plant);
+  const pots = catalog.products.filter((product) => !product.fixedPlants || product.defaultPlants.includes(plant.id));
 
   return (
     <>
@@ -86,10 +87,10 @@ export default async function PlantPage({ params }: Props) {
             <h2 className="font-head text-[clamp(2rem,4.4vw,3.2rem)] font-extrabold">{dictionary.plantPage.pickPot}</h2>
             <p className="text-lg text-ink-soft">{dictionary.plantPage.pickPotSub}</p>
           </div>
-          {catalog.products.length ? (
+          {pots.length ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {catalog.products.map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} plants={product.slots.map(() => plant.id)} />
+              {pots.map((product, index) => (
+                <ProductCard key={product.id} product={product} index={index} plants={product.fixedPlants ? product.defaultPlants : product.slots.map(() => plant.id)} />
               ))}
             </div>
           ) : (

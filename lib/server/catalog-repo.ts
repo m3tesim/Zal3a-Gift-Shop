@@ -67,6 +67,7 @@ function toProduct(row: Row, variants: Record<string, string>): Product {
     stock: (row.stock as number) ?? null,
     slots: json(row.slots, [EMPTY_L]),
     defaultPlants: json(row.default_plants, []),
+    fixedPlants: !!row.fixed_plants,
     tint: row.tint as Product["tint"],
     image: row.image as string,
     pos: row.pos as string,
@@ -162,6 +163,7 @@ export function saveProduct(product: Omit<Product, "variants" | "sort">, isNew: 
     $stock: product.stock,
     $slots: JSON.stringify(product.slots),
     $default_plants: JSON.stringify(product.defaultPlants),
+    $fixed_plants: product.fixedPlants ? 1 : 0,
     $tint: product.tint,
     $image: product.image,
     $pos: product.pos,
@@ -176,15 +178,15 @@ export function saveProduct(product: Omit<Product, "variants" | "sort">, isNew: 
     if (product.featured) db.prepare("UPDATE products SET featured = 0 WHERE id != ?").run(product.id);
     if (isNew) {
       db.prepare(
-        `INSERT INTO products (id, name, kind, description, badge, styled, price, sale_percent, stock, slots, default_plants, tint,
+        `INSERT INTO products (id, name, kind, description, badge, styled, price, sale_percent, stock, slots, default_plants, fixed_plants, tint,
          image, pos, vibes, recipients, specs, visible, featured, sort)
-         VALUES ($id, $name, $kind, $description, $badge, $styled, $price, $sale_percent, $stock, $slots, $default_plants, $tint,
+         VALUES ($id, $name, $kind, $description, $badge, $styled, $price, $sale_percent, $stock, $slots, $default_plants, $fixed_plants, $tint,
          $image, $pos, $vibes, $recipients, $specs, $visible, $featured, $sort)`,
       ).run({ ...values, $sort: nextSort("products") });
     } else {
       db.prepare(
         `UPDATE products SET name=$name, kind=$kind, description=$description, badge=$badge, styled=$styled, price=$price,
-         sale_percent=$sale_percent, stock=$stock, slots=$slots, default_plants=$default_plants, tint=$tint, image=$image, pos=$pos,
+         sale_percent=$sale_percent, stock=$stock, slots=$slots, default_plants=$default_plants, fixed_plants=$fixed_plants, tint=$tint, image=$image, pos=$pos,
          vibes=$vibes, recipients=$recipients, specs=$specs, visible=$visible, featured=$featured, updated_at=datetime('now') WHERE id=$id`,
       ).run(values);
     }

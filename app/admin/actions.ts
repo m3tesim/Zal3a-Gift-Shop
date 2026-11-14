@@ -93,6 +93,7 @@ const PotSchema = z
     stock,
     slots: z.array(LReq(60)).min(1).max(4),
     defaultPlants: z.array(z.string()).min(1).max(4),
+    fixedPlants: z.boolean(),
     tint: z.enum(TINTS),
     image,
     pos: z.string().regex(/^\d{1,3}% \d{1,3}%$/),

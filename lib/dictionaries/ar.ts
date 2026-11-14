@@ -107,6 +107,7 @@ export const ar: Dict = {
   product: {
     allPots: "كل القصاري",
     whoInside: "مين ساكن جوه؟",
+    comesWith: "جاية مع",
     whoInsideSlot: (slot: string) => `مين ساكن في ${slot}؟`,
     soldOut: "خلصت",
     onlyLeft: (count: number) => `فاضل ${count} بس!`,

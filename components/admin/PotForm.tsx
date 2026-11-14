@@ -30,6 +30,7 @@ function newPot(potCount: number, firstPlant: string): PotInput {
     price: 0, salePercent: 0, stock: 10,
     slots: set ? Array.from({ length: potCount }, (_slot, index) => ({ en: `Pot ${index + 1}`, ar: `القصرية ${index + 1}` })) : [{ en: "Pot", ar: "القصرية" }],
     defaultPlants: Array(potCount).fill(firstPlant),
+    fixedPlants: false,
     tint: "pink", image: "", pos: "50% 50%",
     vibes: [], recipients: [],
     specs: [
@@ -192,11 +193,22 @@ export function PotForm({
         <p className="rounded-2xl bg-cream px-4 py-2 font-bold">
           Customers see:{" "}
           {form.salePercent > 0 && <s className="me-1 text-ink-soft">{formatPrice(full, "en")}</s>}
-          {formatPrice(applySale(full, form.salePercent), "en")} with the default plants
+          {formatPrice(applySale(full, form.salePercent), "en")} with {form.fixedPlants ? "its plants" : "the default plants"}
         </p>
       </Panel>
 
-      <Panel title="Pots in this set" sub="One row per pot. Customers pick a plant for each one, like the two cats in the Gossip Duo.">
+      <Panel
+        title="Pots in this set"
+        sub={form.fixedPlants ? "One row per pot, with the plant that always comes in it." : "One row per pot. Customers pick a plant for each one, like the two cats in the Gossip Duo."}
+      >
+        <div className="grid gap-1 rounded-2xl bg-cream px-4 py-3">
+          <Toggle label="Fixed plants: sold as it is" checked={form.fixedPlants} onChange={(isFixed) => set("fixedPlants", isFixed)} />
+          <p className="text-sm text-ink-soft">
+            {form.fixedPlants
+              ? "Customers get exactly the plants below and can't swap them. If one sells out, this pot shows as sold out."
+              : "Customers can swap the default plants for any other plant on the shop."}
+          </p>
+        </div>
         <ol className="grid gap-4">
           {form.slots.map((slot, slotIndex) => (
             <li key={slotIndex} className="grid gap-3 rounded-2xl border-2 border-line p-3">
@@ -219,7 +231,7 @@ export function PotForm({
                 value={slot}
                 onChange={(label) => setForm((previous) => ({ ...previous, slots: previous.slots.map((existing, index) => (index === slotIndex ? label : existing)) }))}
               />
-              <Labeled label="Default plant">
+              <Labeled label={form.fixedPlants ? "Plant" : "Default plant"}>
                 <Select
                   value={form.defaultPlants[slotIndex]}
                   onChange={(event) => setForm((previous) => ({ ...previous, defaultPlants: previous.defaultPlants.map((existing, index) => (index === slotIndex ? event.target.value : existing)) }))}

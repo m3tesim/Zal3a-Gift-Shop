@@ -106,6 +106,7 @@ export const en = {
   product: {
     allPots: "All pots",
     whoInside: "Who lives inside?",
+    comesWith: "Comes with",
     whoInsideSlot: (slot: string) => `Who lives in ${slot}?`,
     soldOut: "Sold out",
     onlyLeft: (count: number) => `Only ${count} left!`,

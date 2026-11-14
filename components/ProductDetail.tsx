@@ -13,7 +13,7 @@ import { Price } from "./Price";
 import { BackIcon, GiftIcon, PlantIcon, TruckIcon } from "./icons";
 import { Stars } from "./reviews/Stars";
 import {
-  TINT, defaultPlantsFor, linePrice, maxQty, plantOf, productOf, soldOut, variantImage,
+  TINT, allowsPlants, defaultPlantsFor, linePrice, maxQty, plantOf, productOf, soldOut, variantImage,
   type Catalog, type Product,
 } from "@/lib/catalog";
 import { useShop } from "@/lib/store";
@@ -24,7 +24,7 @@ function PlantsFromQuery({ catalog, product, onPick }: { catalog: Catalog; produ
   const plantsParam = useSearchParams().get("plants");
   useEffect(() => {
     const ids = plantsParam?.split(",") ?? [];
-    if (ids.length === product.slots.length && ids.every((id) => plantOf(catalog, id) && !soldOut(plantOf(catalog, id)!))) onPick(ids);
+    if (allowsPlants(product, ids) && ids.every((id) => plantOf(catalog, id) && !soldOut(plantOf(catalog, id)!))) onPick(ids);
   }, [plantsParam, catalog, product, onPick]);
   return null;
 }
@@ -32,6 +32,7 @@ function PlantsFromQuery({ catalog, product, onPick }: { catalog: Catalog; produ
 /** Warm the cache for every combo one click away, so swapping photos feels instant. */
 function usePreloadNeighbours(product: Product, plants: string[], catalog: Catalog) {
   useEffect(() => {
+    if (product.fixedPlants) return;
     const urls = new Set<string>();
     plants.forEach((_plant, slot) =>
       catalog.plants.forEach((plant) => {
@@ -164,7 +165,27 @@ export function ProductDetail({ id }: { id: string }) {
 
           <p className="max-w-[52ch] text-lg text-ink-soft">{product.desc[locale]}</p>
 
-          {product.slots.map((slot, slotIndex) => {
+          {product.fixedPlants ? (
+            <div className="grid gap-3">
+              <h2 className="font-head text-xl">{dictionary.product.comesWith}</h2>
+              <ul className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
+                {plants.map((plantId, slotIndex) => {
+                  const plant = plantOf(catalog, plantId);
+                  return plant ? (
+                    <li key={slotIndex} className={`flex items-center gap-3 rounded-2xl border-[3px] border-ink p-3 ${TINT[plant.tint].soft}`}>
+                      <PlantIcon icon={plant.icon} className="size-11 shrink-0" />
+                      <span className="grid">
+                        <b className="leading-tight">{plant.name[locale]}</b>
+                        <small className="text-ink-soft">
+                          {product.slots.length > 1 ? product.slots[slotIndex][locale] : dictionary.product.included}
+                        </small>
+                      </span>
+                    </li>
+                  ) : null;
+                })}
+              </ul>
+            </div>
+          ) : product.slots.map((slot, slotIndex) => {
             const base = plantOf(catalog, defaults[slotIndex])?.price ?? 0;
             return (
               <fieldset key={slotIndex} className="grid gap-3">

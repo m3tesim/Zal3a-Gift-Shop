@@ -13,10 +13,12 @@ function combos(ids: string[], slots: number): string[][] {
 
 export function VariantGrid({ product, plants }: { product: Product; plants: Plant[] }) {
   const [error, setError] = useState("");
-  const all = combos(
-    plants.map((plant) => plant.id),
-    product.slots.length,
-  );
+  const all = product.fixedPlants
+    ? [product.defaultPlants]
+    : combos(
+        plants.map((plant) => plant.id),
+        product.slots.length,
+      );
   const have = all.filter((combo) => product.variants[comboKey(combo)]).length;
   const byId = Object.fromEntries(plants.map((plant) => [plant.id, plant]));
 

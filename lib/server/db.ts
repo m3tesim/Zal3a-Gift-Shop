@@ -190,7 +190,10 @@ function upgradeToV2(db: DatabaseSync) {
 /** v3: optional banner image on offer emails. */
 const V3 = `ALTER TABLE campaigns ADD COLUMN image TEXT;`;
 
-const MIGRATIONS: ((db: DatabaseSync) => void)[] = [(db) => db.exec(V1), upgradeToV2, (db) => db.exec(V3)];
+/** v4: pots that come with one set plant the customer can't swap. */
+const V4 = `ALTER TABLE products ADD COLUMN fixed_plants INTEGER NOT NULL DEFAULT 0;`;
+
+const MIGRATIONS: ((db: DatabaseSync) => void)[] = [(db) => db.exec(V1), upgradeToV2, (db) => db.exec(V3), (db) => db.exec(V4)];
 
 function migrate(db: DatabaseSync) {
   const version = () => (db.prepare("PRAGMA user_version").get() as { user_version: number }).user_version;

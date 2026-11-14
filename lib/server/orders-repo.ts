@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getDb, json, setting, transaction } from "./db";
 import type { Customer } from "./customers";
 import { readCatalog } from "./catalog-repo";
-import { MAX_QTY, linePrice, plantOf, productOf, soldOut } from "@/lib/catalog";
+import { MAX_QTY, allowsPlants, linePrice, plantOf, productOf, soldOut } from "@/lib/catalog";
 import { deliveryFee } from "@/lib/site";
 import {
   EG_MOBILE, EMAIL, ORDER_STATUSES, PAYMENTS, WRAPS, cleanPhone,
@@ -51,7 +51,7 @@ export function placeOrder(raw: unknown, customer: Customer | null = null): Plac
     for (const line of input.lines) {
       const product = productOf(catalog, line.id);
       const plants = line.plants.map((id) => plantOf(catalog, id));
-      if (!product || line.plants.length !== product.slots.length || plants.some((plant) => !plant)) {
+      if (!product || !allowsPlants(product, line.plants) || plants.some((plant) => !plant)) {
         return { ok: false, error: "unavailable", item: product?.name[locale] ?? line.id };
       }
       needPots.set(product.id, (needPots.get(product.id) ?? 0) + line.qty);

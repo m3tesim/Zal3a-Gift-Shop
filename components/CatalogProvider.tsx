@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect } from "react";
-import { maxQty, plantOf, productOf, type Catalog } from "@/lib/catalog";
+import { maxQty, productOf, type Catalog } from "@/lib/catalog";
 import { useShop, type CartLine } from "@/lib/store";
 
 const CatalogContext = createContext<Catalog>({ products: [], plants: [], tags: [], care: [], ratings: {} });
@@ -9,8 +9,7 @@ const CatalogContext = createContext<Catalog>({ products: [], plants: [], tags: 
 /** How many of a cart line can still be bought (0 = remove it). */
 export function lineLimit(catalog: Catalog, line: CartLine) {
   const product = productOf(catalog, line.id);
-  if (!product || line.plants.length !== product.slots.length || line.plants.some((id) => !plantOf(catalog, id))) return 0;
-  return maxQty(catalog, product, line.plants);
+  return product ? maxQty(catalog, product, line.plants) : 0;
 }
 
 export function CatalogProvider({ catalog, children }: { catalog: Catalog; children: React.ReactNode }) {

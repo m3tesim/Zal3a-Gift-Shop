@@ -2,7 +2,7 @@
 import type { CareOption, L, Plant, Product, Spec, Tag } from "@/lib/catalog";
 
 type SeedPlant = Omit<Plant, "image" | "sort">;
-type SeedProduct = Omit<Product, "image" | "variants" | "sort"> & { photo: string };
+type SeedProduct = Omit<Product, "image" | "variants" | "sort" | "fixedPlants"> & { photo: string };
 
 export const SEED_PLANTS: SeedPlant[] = [
   {
