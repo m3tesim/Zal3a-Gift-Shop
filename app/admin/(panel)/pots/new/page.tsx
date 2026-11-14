@@ -11,7 +11,7 @@ const TITLES: Record<number, { title: string; sub: string }> = {
 };
 
 export default async function NewPotPage({ searchParams }: { searchParams: Promise<{ pots?: string }> }) {
-  const n = Math.min(3, Math.max(1, Number((await searchParams).pots) || 1));
+  const potCount = Math.min(3, Math.max(1, Number((await searchParams).pots) || 1));
   const { plants, tags } = readCatalog({ includeHidden: true });
   return (
     <div className="grid gap-6">
@@ -19,10 +19,10 @@ export default async function NewPotPage({ searchParams }: { searchParams: Promi
         <Link href="/admin/pots" className="text-sm font-bold text-ink-soft hover:text-pink">
           ← All pots
         </Link>
-        <h1 className="font-head text-4xl font-extrabold">{TITLES[n].title}</h1>
-        <p className="text-ink-soft">{TITLES[n].sub}</p>
+        <h1 className="font-head text-4xl font-extrabold">{TITLES[potCount].title}</h1>
+        <p className="text-ink-soft">{TITLES[potCount].sub}</p>
       </header>
-      <PotForm key={n} product={null} plants={plants} tags={tags} potsInSet={n} />
+      <PotForm key={potCount} product={null} plants={plants} tags={tags} potsInSet={potCount} />
     </div>
   );
 }

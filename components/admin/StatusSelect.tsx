@@ -19,12 +19,12 @@ export function StatusSelect({ number, status }: { number: string; status: Order
       aria-label={`Status of ${number}`}
       value={status}
       disabled={pending}
-      onChange={(e) => start(async () => void (await setOrderStatusAction(number, e.target.value)))}
+      onChange={(event) => start(async () => void (await setOrderStatusAction(number, event.target.value)))}
       className={`rounded-full border-2 border-ink px-3 py-1 font-bold capitalize ${STATUS_STYLE[status]} ${pending ? "opacity-50" : ""}`}
     >
-      {ORDER_STATUSES.map((s) => (
-        <option key={s} value={s} className="bg-paper text-ink">
-          {s}
+      {ORDER_STATUSES.map((status) => (
+        <option key={status} value={status} className="bg-paper text-ink">
+          {status}
         </option>
       ))}
     </select>

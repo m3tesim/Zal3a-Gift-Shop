@@ -13,17 +13,17 @@ import {
 const safeNext = (next: string | undefined, locale: string) => (next && next.startsWith(`/${locale}/`) && !next.startsWith("//") ? next : `/${locale}/account`);
 
 function useSubmit() {
-  const { t } = useI18n();
+  const { dictionary } = useI18n();
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
-  const submit = (fn: () => Promise<AccountResult>, onOk: () => void) =>
+  const submit = (request: () => Promise<AccountResult>, onOk: () => void) =>
     start(async () => {
       try {
-        const r = await fn();
-        if (r.ok) onOk();
-        else setError(t.account.errors[r.error]);
+        const result = await request();
+        if (result.ok) onOk();
+        else setError(dictionary.account.errors[result.error]);
       } catch {
-        setError(t.account.errors.generic);
+        setError(dictionary.account.errors.generic);
       }
     });
   return { pending, error, submit };
@@ -48,17 +48,17 @@ function ErrorNote({ error }: { error: string }) {
 }
 
 export function LoginForm({ next }: { next?: string }) {
-  const { locale, t } = useI18n();
+  const { locale, dictionary } = useI18n();
   const router = useRouter();
   const { pending, error, submit } = useSubmit();
-  const [f, setF] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ email: "", password: "" });
   return (
     <form
       className="grid gap-4"
-      onSubmit={(e) => {
-        e.preventDefault();
+      onSubmit={(event) => {
+        event.preventDefault();
         submit(
-          () => loginCustomerAction(f),
+          () => loginCustomerAction(form),
           async () => {
             await refreshMe();
             router.push(safeNext(next, locale));
@@ -67,19 +67,19 @@ export function LoginForm({ next }: { next?: string }) {
         );
       }}
     >
-      <Field label={t.account.email} type="email" dir="ltr" required autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-      <Field label={t.account.password} type="password" required autoComplete="current-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} />
+      <Field label={dictionary.account.email} type="email" dir="ltr" required autoComplete="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
+      <Field label={dictionary.account.password} type="password" required autoComplete="current-password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} />
       <Link href={`/${locale}/account/forgot`} className="w-fit text-sm font-bold underline underline-offset-4 hover:text-pink">
-        {t.account.forgot}
+        {dictionary.account.forgot}
       </Link>
       <ErrorNote error={error} />
       <button type="submit" disabled={pending} className="btn btn-pink w-full">
-        {t.account.signIn}
+        {dictionary.account.signIn}
       </button>
       <p className="text-center text-sm">
-        {t.account.noAccount}{" "}
+        {dictionary.account.noAccount}{" "}
         <Link href={`/${locale}/account/register${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-extrabold text-pink underline underline-offset-4">
-          {t.account.register}
+          {dictionary.account.register}
         </Link>
       </p>
     </form>
@@ -87,17 +87,17 @@ export function LoginForm({ next }: { next?: string }) {
 }
 
 export function RegisterForm({ next }: { next?: string }) {
-  const { locale, t } = useI18n();
+  const { locale, dictionary } = useI18n();
   const router = useRouter();
   const { pending, error, submit } = useSubmit();
-  const [f, setF] = useState({ name: "", email: "", phone: "", password: "", marketing: true });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", marketing: true });
   return (
     <form
       className="grid gap-4"
-      onSubmit={(e) => {
-        e.preventDefault();
+      onSubmit={(event) => {
+        event.preventDefault();
         submit(
-          () => registerAction({ ...f, locale }),
+          () => registerAction({ ...form, locale }),
           async () => {
             await refreshMe();
             router.push(safeNext(next, locale));
@@ -106,40 +106,40 @@ export function RegisterForm({ next }: { next?: string }) {
         );
       }}
     >
-      <Field label={t.account.name} required autoComplete="name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-      <Field label={t.account.email} type="email" dir="ltr" required autoComplete="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
+      <Field label={dictionary.account.name} required autoComplete="name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+      <Field label={dictionary.account.email} type="email" dir="ltr" required autoComplete="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} />
       <Field
-        label={`${t.account.phone} (${t.checkout.optional})`}
+        label={`${dictionary.account.phone} (${dictionary.checkout.optional})`}
         type="tel"
         dir="ltr"
         inputMode="tel"
         autoComplete="tel"
         placeholder="01X XXXX XXXX"
-        value={f.phone}
-        onChange={(e) => setF({ ...f, phone: e.target.value })}
+        value={form.phone}
+        onChange={(event) => setForm({ ...form, phone: event.target.value })}
       />
       <Field
-        label={t.account.password}
-        hint={t.account.passwordHint}
+        label={dictionary.account.password}
+        hint={dictionary.account.passwordHint}
         type="password"
         required
         minLength={8}
         autoComplete="new-password"
-        value={f.password}
-        onChange={(e) => setF({ ...f, password: e.target.value })}
+        value={form.password}
+        onChange={(event) => setForm({ ...form, password: event.target.value })}
       />
       <label className="flex cursor-pointer items-start gap-3 font-bold">
-        <input type="checkbox" checked={f.marketing} onChange={(e) => setF({ ...f, marketing: e.target.checked })} className="mt-1 size-5 shrink-0 accent-pink" />
-        {t.account.marketing}
+        <input type="checkbox" checked={form.marketing} onChange={(event) => setForm({ ...form, marketing: event.target.checked })} className="mt-1 size-5 shrink-0 accent-pink" />
+        {dictionary.account.marketing}
       </label>
       <ErrorNote error={error} />
       <button type="submit" disabled={pending} className="btn btn-pink w-full">
-        {t.account.register}
+        {dictionary.account.register}
       </button>
       <p className="text-center text-sm">
-        {t.account.haveAccount}{" "}
+        {dictionary.account.haveAccount}{" "}
         <Link href={`/${locale}/account/login${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-extrabold text-pink underline underline-offset-4">
-          {t.account.signIn}
+          {dictionary.account.signIn}
         </Link>
       </p>
     </form>
@@ -147,39 +147,39 @@ export function RegisterForm({ next }: { next?: string }) {
 }
 
 export function ForgotForm() {
-  const { locale, t } = useI18n();
+  const { locale, dictionary } = useI18n();
   const { pending, error, submit } = useSubmit();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
-  if (sent) return <p className="rounded-2xl bg-lime-soft px-4 py-3 font-bold">{t.account.linkSent}</p>;
+  if (sent) return <p className="rounded-2xl bg-lime-soft px-4 py-3 font-bold">{dictionary.account.linkSent}</p>;
   return (
     <form
       className="grid gap-4"
-      onSubmit={(e) => {
-        e.preventDefault();
+      onSubmit={(event) => {
+        event.preventDefault();
         submit(() => forgotPasswordAction({ locale, email }), () => setSent(true));
       }}
     >
-      <p className="text-ink-soft">{t.account.forgotText}</p>
-      <Field label={t.account.email} type="email" dir="ltr" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <p className="text-ink-soft">{dictionary.account.forgotText}</p>
+      <Field label={dictionary.account.email} type="email" dir="ltr" required autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} />
       <ErrorNote error={error} />
       <button type="submit" disabled={pending} className="btn btn-pink w-full">
-        {t.account.sendLink}
+        {dictionary.account.sendLink}
       </button>
     </form>
   );
 }
 
 export function ResetForm({ token }: { token: string }) {
-  const { locale, t } = useI18n();
+  const { locale, dictionary } = useI18n();
   const router = useRouter();
   const { pending, error, submit } = useSubmit();
   const [password, setPassword] = useState("");
   return (
     <form
       className="grid gap-4"
-      onSubmit={(e) => {
-        e.preventDefault();
+      onSubmit={(event) => {
+        event.preventDefault();
         submit(
           () => resetPasswordAction({ token, password }),
           async () => {
@@ -191,18 +191,18 @@ export function ResetForm({ token }: { token: string }) {
       }}
     >
       <Field
-        label={t.account.newPassword}
-        hint={t.account.passwordHint}
+        label={dictionary.account.newPassword}
+        hint={dictionary.account.passwordHint}
         type="password"
         required
         minLength={8}
         autoComplete="new-password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(event) => setPassword(event.target.value)}
       />
-      <ErrorNote error={error === t.account.errors.generic ? t.account.badLink : error} />
+      <ErrorNote error={error === dictionary.account.errors.generic ? dictionary.account.badLink : error} />
       <button type="submit" disabled={pending} className="btn btn-pink w-full">
-        {t.account.savePassword}
+        {dictionary.account.savePassword}
       </button>
     </form>
   );

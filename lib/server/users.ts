@@ -8,7 +8,7 @@ const SESSION_DAYS = 7;
 export const countUsers = () => (getDb().prepare("SELECT COUNT(*) AS n FROM users").get() as { n: number }).n;
 
 export const listUsers = () =>
-  (getDb().prepare("SELECT id, email, created_at AS createdAt FROM users ORDER BY id").all() as (AdminUser & { createdAt: string })[]).map((u) => ({ ...u }));
+  (getDb().prepare("SELECT id, email, created_at AS createdAt FROM users ORDER BY id").all() as (AdminUser & { createdAt: string })[]).map((user) => ({ ...user }));
 
 export async function createUser(email: string, password: string) {
   const hash = await hashPassword(password);

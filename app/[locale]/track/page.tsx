@@ -18,12 +18,12 @@ export default async function TrackPage({ params, searchParams }: Props) {
   const { order: number = "", t: token = "" } = await searchParams;
   // Links in emails carry a signature, so they open straight to the order.
   const order = number && token && checkTrackingToken(number, token) ? getOrder(number) : null;
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
 
   return (
     <section className="mx-auto grid max-w-5xl gap-6 px-4 py-10">
       <h1 className="font-head text-[clamp(2.4rem,6vw,3.6rem)] font-extrabold">
-        {t.track.title}
+        {dictionary.track.title}
         <span className="text-pink">.</span>
       </h1>
       {order ? <OrderTracking order={order} events={orderEvents(order.number)} locale={locale} /> : <TrackForm initialNumber={number} />}

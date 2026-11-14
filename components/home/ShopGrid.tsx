@@ -3,19 +3,19 @@ import type { Product } from "@/lib/catalog";
 import { ProductCard } from "../ProductCard";
 
 export function ShopGrid({ locale, products }: { locale: Locale; products: Product[] }) {
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
   return (
     <section id="shop" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-12">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div className="grid gap-3">
-          <span className="eyebrow">{t.shop.eyebrow}</span>
-          <h2 className="font-head text-[clamp(2.2rem,5vw,3.6rem)] font-extrabold">{t.shop.title}</h2>
+          <span className="eyebrow">{dictionary.shop.eyebrow}</span>
+          <h2 className="font-head text-[clamp(2.2rem,5vw,3.6rem)] font-extrabold">{dictionary.shop.title}</h2>
         </div>
-        <p className="max-w-[38ch] text-lg text-ink-soft">{t.shop.sub}</p>
+        <p className="max-w-[38ch] text-lg text-ink-soft">{dictionary.shop.sub}</p>
       </div>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((p, i) => (
-          <ProductCard key={p.id} product={p} index={i} />
+        {products.map((product, index) => (
+          <ProductCard key={product.id} product={product} index={index} />
         ))}
       </div>
     </section>

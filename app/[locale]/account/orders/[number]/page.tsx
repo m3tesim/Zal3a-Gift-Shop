@@ -21,13 +21,13 @@ export default async function MyOrderPage({ params }: Props) {
   if (!me) redirect(`/${locale}/account/login?next=/${locale}/account/orders/${number}`);
   const order = getOrder(number);
   if (!order || order.customerId !== me.id) notFound();
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
 
   return (
     <section className="mx-auto grid max-w-5xl gap-6 px-4 py-10">
       <Link href={`/${locale}/account`} className="inline-flex w-fit items-center gap-1.5 rounded-full border-2 border-ink bg-paper px-3 py-1.5 text-sm font-bold hover:bg-sun-soft">
         <BackIcon width={16} height={16} className="rtl:-scale-x-100" />
-        {t.account.backToOrders}
+        {dictionary.account.backToOrders}
       </Link>
       <OrderTracking order={order} events={orderEvents(order.number)} locale={locale} reviewLinks />
     </section>

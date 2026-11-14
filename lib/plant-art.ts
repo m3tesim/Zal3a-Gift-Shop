@@ -70,14 +70,14 @@ export const PLANT_ART: Record<PlantIconKey, Shape[]> = {
 /** SVG markup with literal colours, for server-side rendering with sharp. */
 export function plantSvgMarkup(icon: PlantIconKey, size: number) {
   const body = PLANT_ART[icon]
-    .map((s) => {
-      const stroke = s.stroke === null ? "" : ` stroke="${HEX[s.stroke ?? "ink"]}" stroke-width="${s.width ?? 2.5}" stroke-linejoin="round"`;
-      const cap = s.cap ? ` stroke-linecap="round"` : "";
-      const fill = ` fill="${s.fill === "none" ? "none" : HEX[s.fill]}"`;
-      const op = s.opacity ? ` opacity="${s.opacity}"` : "";
-      return "path" in s
-        ? `<path d="${s.path}"${fill}${stroke}${cap}${op}/>`
-        : `<circle cx="${s.circle[0]}" cy="${s.circle[1]}" r="${s.circle[2]}"${fill}${stroke}${op}/>`;
+    .map((shape) => {
+      const stroke = shape.stroke === null ? "" : ` stroke="${HEX[shape.stroke ?? "ink"]}" stroke-width="${shape.width ?? 2.5}" stroke-linejoin="round"`;
+      const cap = shape.cap ? ` stroke-linecap="round"` : "";
+      const fill = ` fill="${shape.fill === "none" ? "none" : HEX[shape.fill]}"`;
+      const opacityAttr = shape.opacity ? ` opacity="${shape.opacity}"` : "";
+      return "path" in shape
+        ? `<path d="${shape.path}"${fill}${stroke}${cap}${opacityAttr}/>`
+        : `<circle cx="${shape.circle[0]}" cy="${shape.circle[1]}" r="${shape.circle[2]}"${fill}${stroke}${opacityAttr}/>`;
     })
     .join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}">${body}</svg>`;

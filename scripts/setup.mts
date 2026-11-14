@@ -16,22 +16,22 @@ const { comboKey } = await import("@/lib/catalog");
 
 /** Every way to fill `slots` pots with the given plants: [[a,a],[a,b],[b,a],[b,b]] */
 function combos(ids: string[], slots: number): string[][] {
-  return slots === 0 ? [[]] : combos(ids, slots - 1).flatMap((c) => ids.map((id) => [...c, id]));
+  return slots === 0 ? [[]] : combos(ids, slots - 1).flatMap((combo) => ids.map((id) => [...combo, id]));
 }
 
 async function seed() {
   console.log("🌱 Seeding catalog with mock images…");
-  for (const p of SEED_PLANTS) {
-    const image = p.potOnly ? null : await saveImage(await mockPlantImage(p));
-    savePlant({ ...p, image, sort: 0 }, true);
+  for (const plant of SEED_PLANTS) {
+    const image = plant.potOnly ? null : await saveImage(await mockPlantImage(plant));
+    savePlant({ ...plant, image, sort: 0 }, true);
   }
-  for (const p of SEED_PRODUCTS) {
-    const photo = path.join("public/img", p.photo);
-    const { photo: _, ...rest } = p;
+  for (const product of SEED_PRODUCTS) {
+    const photo = path.join("public/img", product.photo);
+    const { photo: _photo, ...rest } = product;
     saveProduct({ ...rest, image: await saveImage(photo) }, true);
-    for (const c of combos(SEED_PLANTS.map((x) => x.id), p.slots.length)) {
-      const plants = c.map((id) => SEED_PLANTS.find((x) => x.id === id)!);
-      setVariant(p.id, comboKey(c), await saveImage(await mockVariantImage(photo, plants)));
+    for (const combo of combos(SEED_PLANTS.map((plant) => plant.id), product.slots.length)) {
+      const plants = combo.map((id) => SEED_PLANTS.find((plant) => plant.id === id)!);
+      setVariant(product.id, comboKey(combo), await saveImage(await mockVariantImage(photo, plants)));
     }
   }
   console.log(`   ${SEED_PLANTS.length} plants, ${SEED_PRODUCTS.length} pots.`);

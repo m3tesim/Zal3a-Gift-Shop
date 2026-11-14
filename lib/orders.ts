@@ -40,7 +40,7 @@ export type PlaceOrderResult =
 
 export const EG_MOBILE = /^(?:\+?20|0020)?0?1[0125]\d{8}$/;
 export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-export const cleanPhone = (v: string) => v.replace(/[\s()-]/g, "");
+export const cleanPhone = (phone: string) => phone.replace(/[\s()-]/g, "");
 /** 01012345678 -> 201012345678 for wa.me links */
 export const waNumber = (phone: string) => "20" + cleanPhone(phone).replace(/^(?:\+|00)?20/, "").replace(/^0/, "");
 

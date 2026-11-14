@@ -1,6 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { getDb, json, setting, tx } from "./db";
+import { getDb, json, setting, transaction } from "./db";
 import type { Customer } from "./customers";
 import { readCatalog } from "./catalog-repo";
 import { MAX_QTY, linePrice, plantOf, productOf, soldOut } from "@/lib/catalog";
@@ -12,7 +12,7 @@ import {
 
 const text = (max: number) => z.string().trim().max(max);
 const required = (max: number) => text(max).min(1);
-const phone = z.string().transform(cleanPhone).refine((v) => EG_MOBILE.test(v));
+const phone = z.string().transform(cleanPhone).refine((value) => EG_MOBILE.test(value));
 
 const CheckoutSchema = z.object({
   locale: z.enum(["en", "ar"]),
@@ -20,7 +20,7 @@ const CheckoutSchema = z.object({
     .array(z.object({ id: text(64), plants: z.array(text(64)).min(1).max(6), qty: z.number().int().min(1).max(MAX_QTY) }))
     .min(1)
     .max(30),
-  contact: z.object({ name: required(80), phone, email: text(120).refine((v) => !v || EMAIL.test(v)) }),
+  contact: z.object({ name: required(80), phone, email: text(120).refine((value) => !value || EMAIL.test(value)) }),
   gift: z
     .object({ name: required(80), phone, wrap: z.enum(WRAPS), note: text(200), hidePrices: z.boolean() })
     .nullable(),
@@ -40,54 +40,54 @@ export function placeOrder(raw: unknown, customer: Customer | null = null): Plac
   const parsed = CheckoutSchema.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "invalid" };
   const input = parsed.data;
-  const L = input.locale;
+  const locale = input.locale;
 
-  return tx((): PlaceOrderResult => {
-    const c = readCatalog();
+  return transaction((): PlaceOrderResult => {
+    const catalog = readCatalog();
     const items: Order["items"] = [];
     const needPots = new Map<string, number>();
     const needPlants = new Map<string, number>();
 
     for (const line of input.lines) {
-      const p = productOf(c, line.id);
-      const plants = line.plants.map((id) => plantOf(c, id));
-      if (!p || line.plants.length !== p.slots.length || plants.some((x) => !x)) {
-        return { ok: false, error: "unavailable", item: p?.name[L] ?? line.id };
+      const product = productOf(catalog, line.id);
+      const plants = line.plants.map((id) => plantOf(catalog, id));
+      if (!product || line.plants.length !== product.slots.length || plants.some((plant) => !plant)) {
+        return { ok: false, error: "unavailable", item: product?.name[locale] ?? line.id };
       }
-      needPots.set(p.id, (needPots.get(p.id) ?? 0) + line.qty);
+      needPots.set(product.id, (needPots.get(product.id) ?? 0) + line.qty);
       for (const id of line.plants) needPlants.set(id, (needPlants.get(id) ?? 0) + line.qty);
       items.push({
-        productId: p.id,
-        name: p.name,
-        plants: plants.map((x) => ({ id: x!.id, name: x!.name })),
+        productId: product.id,
+        name: product.name,
+        plants: plants.map((plant) => ({ id: plant!.id, name: plant!.name })),
         qty: line.qty,
-        unit: linePrice(c, p, line.plants).unit,
+        unit: linePrice(catalog, product, line.plants).unit,
       });
     }
 
-    for (const [id, n] of needPots) {
-      const p = productOf(c, id)!;
-      if (soldOut(p) || (p.stock !== null && p.stock < n)) return { ok: false, error: "stock", item: p.name[L] };
+    for (const [id, quantity] of needPots) {
+      const product = productOf(catalog, id)!;
+      if (soldOut(product) || (product.stock !== null && product.stock < quantity)) return { ok: false, error: "stock", item: product.name[locale] };
     }
-    for (const [id, n] of needPlants) {
-      const p = plantOf(c, id)!;
-      if (soldOut(p) || (p.stock !== null && p.stock < n)) return { ok: false, error: "stock", item: p.name[L] };
+    for (const [id, quantity] of needPlants) {
+      const plant = plantOf(catalog, id)!;
+      if (soldOut(plant) || (plant.stock !== null && plant.stock < quantity)) return { ok: false, error: "stock", item: plant.name[locale] };
     }
 
     const db = getDb();
     const decPot = db.prepare("UPDATE products SET stock = stock - ? WHERE id = ? AND stock IS NOT NULL");
     const decPlant = db.prepare("UPDATE plants SET stock = stock - ? WHERE id = ? AND stock IS NOT NULL");
-    needPots.forEach((n, id) => decPot.run(n, id));
-    needPlants.forEach((n, id) => decPlant.run(n, id));
+    needPots.forEach((quantity, id) => decPot.run(quantity, id));
+    needPlants.forEach((quantity, id) => decPlant.run(quantity, id));
 
-    const subtotal = items.reduce((s, i) => s + i.unit * i.qty, 0);
+    const subtotal = items.reduce((sum, item) => sum + item.unit * item.qty, 0);
     const delivery = deliveryFee(input.address.governorate, subtotal);
     const order: Order = {
       number: "",
       customerId: customer?.id ?? null,
       createdAt: new Date().toISOString(),
       status: "new",
-      locale: L,
+      locale: locale,
       items,
       subtotal,
       delivery,
@@ -108,7 +108,7 @@ export function placeOrder(raw: unknown, customer: Customer | null = null): Plac
 }
 
 type Row = { number: string; status: OrderStatus; data: string };
-const toOrder = (r: Row): Order => ({ ...json<Order>(r.data, {} as Order), number: r.number, status: r.status });
+const toOrder = (row: Row): Order => ({ ...json<Order>(row.data, {} as Order), number: row.number, status: row.status });
 
 export function listOrders(status?: OrderStatus) {
   const rows = status
@@ -118,14 +118,14 @@ export function listOrders(status?: OrderStatus) {
 }
 
 export function getOrder(number: string) {
-  const r = getDb().prepare("SELECT number, status, data FROM orders WHERE number = ?").get(number) as Row | undefined;
-  return r ? toOrder(r) : null;
+  const row = getDb().prepare("SELECT number, status, data FROM orders WHERE number = ?").get(number) as Row | undefined;
+  return row ? toOrder(row) : null;
 }
 
 /** Returns the updated order when the status actually changed (so the caller can email the customer). */
 export function setOrderStatus(number: string, status: OrderStatus) {
   if (!ORDER_STATUSES.includes(status)) return null;
-  return tx(() => {
+  return transaction(() => {
     const before = getOrder(number);
     if (!before || before.status === status) return null;
     const db = getDb();
@@ -137,9 +137,9 @@ export function setOrderStatus(number: string, status: OrderStatus) {
 
 // node:sqlite rows have a null prototype, which React can't send to the browser, so copy them into plain objects.
 export const orderEvents = (number: string): OrderEvent[] =>
-  (getDb().prepare("SELECT status, at FROM order_events WHERE order_number = ? ORDER BY id").all(number) as OrderEvent[]).map((e) => ({
-    status: e.status,
-    at: e.at,
+  (getDb().prepare("SELECT status, at FROM order_events WHERE order_number = ? ORDER BY id").all(number) as OrderEvent[]).map((statusEvent) => ({
+    status: statusEvent.status,
+    at: statusEvent.at,
   }));
 
 export function customerOrders(customerId: number) {
@@ -148,29 +148,29 @@ export function customerOrders(customerId: number) {
 
 /** Guest tracking: the order number plus the phone used at checkout. */
 export function findOrderByPhone(number: string, phone: string) {
-  const o = getOrder(number.trim().toUpperCase());
-  const last9 = (v: string) => cleanPhone(v).slice(-9);
-  return o && last9(o.contact.phone) === last9(phone) && last9(phone).length === 9 ? o : null;
+  const order = getOrder(number.trim().toUpperCase());
+  const last9 = (phone: string) => cleanPhone(phone).slice(-9);
+  return order && last9(order.contact.phone) === last9(phone) && last9(phone).length === 9 ? order : null;
 }
 
 /** Signed links in emails let customers open their tracking page without typing anything. */
 const trackingSecret = () => setting("tracking_secret", () => randomBytes(32).toString("hex"));
 export const trackingToken = (number: string) => createHmac("sha256", trackingSecret()).update(number).digest("base64url").slice(0, 24);
 export function checkTrackingToken(number: string, token: string) {
-  const a = Buffer.from(trackingToken(number));
-  const b = Buffer.from(token);
-  return a.length === b.length && timingSafeEqual(a, b);
+  const expected = Buffer.from(trackingToken(number));
+  const provided = Buffer.from(token);
+  return expected.length === provided.length && timingSafeEqual(expected, provided);
 }
 
 /** True when this customer has a delivered order containing the product (= may review it). */
 export function hasReceived(customerId: number, productId: string) {
-  return customerOrders(customerId).some((o) => o.status === "delivered" && o.items.some((i) => i.productId === productId));
+  return customerOrders(customerId).some((order) => order.status === "delivered" && order.items.some((item) => item.productId === productId));
 }
 
 export function orderStats() {
   const db = getDb();
   const byStatus = Object.fromEntries(
-    (db.prepare("SELECT status, COUNT(*) AS n FROM orders GROUP BY status").all() as { status: string; n: number }[]).map((r) => [r.status, r.n]),
+    (db.prepare("SELECT status, COUNT(*) AS n FROM orders GROUP BY status").all() as { status: string; n: number }[]).map((row) => [row.status, row.n]),
   ) as Partial<Record<OrderStatus, number>>;
   const revenue = (db.prepare("SELECT COALESCE(SUM(total), 0) AS s FROM orders WHERE status != 'cancelled'").get() as { s: number }).s;
   return { byStatus, revenue };

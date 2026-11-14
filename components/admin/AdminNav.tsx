@@ -28,16 +28,16 @@ export function AdminNav({ email, newOrders }: { email: string; newOrders: numbe
           <Logo />
         </Link>
         <nav aria-label="Admin" className="no-scrollbar flex flex-1 gap-1 overflow-x-auto lg:grid lg:gap-1.5">
-          {LINKS.map((l) => (
+          {LINKS.map((link) => (
             <Link
-              key={l.href}
-              href={l.href}
-              aria-current={active(l.href) ? "page" : undefined}
-              className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 font-bold transition-colors lg:rounded-2xl ${active(l.href) ? "bg-paper shadow-pop-sm ring-[3px] ring-ink" : "hover:bg-paper/60"}`}
+              key={link.href}
+              href={link.href}
+              aria-current={active(link.href) ? "page" : undefined}
+              className={`flex shrink-0 items-center gap-2 rounded-full px-3 py-2 font-bold transition-colors lg:rounded-2xl ${active(link.href) ? "bg-paper shadow-pop-sm ring-[3px] ring-ink" : "hover:bg-paper/60"}`}
             >
-              <span aria-hidden="true">{l.emoji}</span>
-              {l.label}
-              {l.href === "/admin/orders" && newOrders > 0 && (
+              <span aria-hidden="true">{link.emoji}</span>
+              {link.label}
+              {link.href === "/admin/orders" && newOrders > 0 && (
                 <span className="grid h-5 min-w-5 place-items-center rounded-full bg-pink px-1.5 text-xs text-white">{newOrders}</span>
               )}
             </Link>

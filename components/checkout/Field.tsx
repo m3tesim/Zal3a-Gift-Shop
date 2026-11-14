@@ -17,12 +17,12 @@ export function Field({
   className?: string;
   children: React.ReactNode;
 }) {
-  const { t } = useI18n();
+  const { dictionary } = useI18n();
   return (
     <div className={`grid content-start gap-1.5 ${className}`}>
       <label htmlFor={id} className="flex items-baseline gap-2 font-bold">
         {label}
-        {optional && <span className="text-xs font-semibold text-ink-soft">({t.checkout.optional})</span>}
+        {optional && <span className="text-xs font-semibold text-ink-soft">({dictionary.checkout.optional})</span>}
       </label>
       {children}
       {error ? (

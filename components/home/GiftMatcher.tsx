@@ -27,7 +27,7 @@ function Chip({ on, onClick, emoji, label, onClass }: { on: boolean; onClick: ()
 }
 
 export function GiftMatcher() {
-  const { locale, t } = useI18n();
+  const { locale, dictionary } = useI18n();
   const addToBag = useAddToBag();
   const catalog = useCatalog();
   const [who, setWho] = useState<Who | null>(null);
@@ -38,9 +38,9 @@ export function GiftMatcher() {
   const ranked = who && vibe ? rankMatches(catalog, who, vibe) : [];
   const match = ranked.length ? ranked[pick % ranked.length] : null;
   const plants = match && who ? suggestPlants(catalog, match, who, vibe ?? undefined) : [];
-  const whoTags = tagsOf(catalog, "who").filter((x) => x.visible);
-  const vibeTags = tagsOf(catalog, "vibe").filter((x) => x.visible);
-  const line = whoTags.find((x) => x.id === who)?.line[locale];
+  const whoTags = tagsOf(catalog, "who").filter((tag) => tag.visible);
+  const vibeTags = tagsOf(catalog, "vibe").filter((tag) => tag.visible);
+  const line = whoTags.find((tag) => tag.id === who)?.line[locale];
   const price = match ? linePrice(catalog, match, plants) : null;
 
   return (
@@ -49,26 +49,26 @@ export function GiftMatcher() {
         <StarShape className="absolute -top-6 end-10 size-12 animate-wiggle text-sun" />
         <div className="grid content-start gap-6">
           <div className="grid gap-3">
-            <span className="eyebrow">{t.matcher.eyebrow}</span>
-            <h2 className="font-head text-[clamp(2.2rem,5vw,3.6rem)] font-extrabold">{t.matcher.title}</h2>
-            <p className="text-lg text-ink-soft">{t.matcher.sub}</p>
+            <span className="eyebrow">{dictionary.matcher.eyebrow}</span>
+            <h2 className="font-head text-[clamp(2.2rem,5vw,3.6rem)] font-extrabold">{dictionary.matcher.title}</h2>
+            <p className="text-lg text-ink-soft">{dictionary.matcher.sub}</p>
           </div>
           <fieldset className="grid gap-3">
             <legend className="mb-3 flex items-center gap-2 font-head text-xl">
               <span className="grid size-8 place-items-center rounded-full border-2 border-ink bg-sun font-logo text-base">1</span>
-              {t.matcher.whoQ}
+              {dictionary.matcher.whoQ}
             </legend>
             <div className="flex flex-wrap gap-2">
-              {whoTags.map((w) => (
+              {whoTags.map((whoTag) => (
                 <Chip
-                  key={w.id}
-                  on={who === w.id}
+                  key={whoTag.id}
+                  on={who === whoTag.id}
                   onClick={() => {
-                    setWho(w.id);
+                    setWho(whoTag.id);
                     setPick(0);
                   }}
-                  emoji={w.emoji}
-                  label={w.label[locale]}
+                  emoji={whoTag.emoji}
+                  label={whoTag.label[locale]}
                   onClass="bg-sun"
                 />
               ))}
@@ -77,19 +77,19 @@ export function GiftMatcher() {
           <fieldset className="grid gap-3">
             <legend className="mb-3 flex items-center gap-2 font-head text-xl">
               <span className="grid size-8 place-items-center rounded-full border-2 border-ink bg-sky font-logo text-base">2</span>
-              {t.matcher.vibeQ}
+              {dictionary.matcher.vibeQ}
             </legend>
             <div className="flex flex-wrap gap-2">
-              {vibeTags.map((v) => (
+              {vibeTags.map((vibeTag) => (
                 <Chip
-                  key={v.id}
-                  on={vibe === v.id}
+                  key={vibeTag.id}
+                  on={vibe === vibeTag.id}
                   onClick={() => {
-                    setVibe(v.id);
+                    setVibe(vibeTag.id);
                     setPick(0);
                   }}
-                  emoji={v.emoji}
-                  label={v.label[locale]}
+                  emoji={vibeTag.emoji}
+                  label={vibeTag.label[locale]}
                   onClass="bg-sky"
                 />
               ))}
@@ -101,7 +101,7 @@ export function GiftMatcher() {
           {match && who && price ? (
             <div key={`${match.id}-${who}-${vibe}`} className={`relative grid animate-rise content-start gap-4 rounded-[28px] border-[3px] border-ink p-4 ${TINT[match.tint].soft}`}>
               <span className="absolute -top-4 start-4 z-10 -rotate-6 rounded-full border-[3px] border-ink bg-pink px-4 py-1 font-head text-xl text-white shadow-pop-sm">
-                {t.matcher.match}
+                {dictionary.matcher.match}
               </span>
               <div className="relative aspect-[5/4] overflow-hidden rounded-[20px] border-[3px] border-ink bg-paper">
                 <Image src={variantImage(match, plants) ?? match.image} alt={match.name[locale]} fill sizes="(min-width: 768px) 440px, 90vw" className="object-cover" style={{ objectPosition: match.pos }} />
@@ -113,20 +113,20 @@ export function GiftMatcher() {
                 </span>
               </div>
               <span className="w-fit rounded-full border-2 border-ink bg-paper px-3 py-1 text-sm font-bold">
-                {t.matcher.comesWith(plantsSummary(catalog, plants, locale))}
+                {dictionary.matcher.comesWith(plantsSummary(catalog, plants, locale))}
               </span>
               {line && <p className="text-lg font-bold">{line}</p>}
               <div className="flex flex-wrap gap-2">
                 <button type="button" className="btn btn-pink flex-1" onClick={() => addToBag(match.id, plants)}>
-                  {t.matcher.add}
+                  {dictionary.matcher.add}
                 </button>
-                <button type="button" className="btn btn-white" onClick={() => setPick((n) => n + 1)}>
+                <button type="button" className="btn btn-white" onClick={() => setPick((current) => current + 1)}>
                   <ShuffleIcon />
-                  {t.matcher.another}
+                  {dictionary.matcher.another}
                 </button>
               </div>
               <Link href={`/${locale}/pots/${match.id}?plants=${plants.join(",")}`} className="inline-flex w-fit items-center gap-1.5 font-bold underline underline-offset-4 hover:text-pink">
-                {t.matcher.view}
+                {dictionary.matcher.view}
                 <ArrowIcon width={16} height={16} className="rtl:-scale-x-100" />
               </Link>
             </div>
@@ -136,7 +136,7 @@ export function GiftMatcher() {
                 <PlantIcon icon="pot" className="size-32 animate-wiggle" />
                 <span className="absolute -end-3 -top-2 grid size-12 place-items-center rounded-full border-[3px] border-ink bg-sun font-logo text-2xl">?</span>
               </div>
-              <p className="max-w-[24ch] text-lg font-bold">{t.matcher.waiting}</p>
+              <p className="max-w-[24ch] text-lg font-bold">{dictionary.matcher.waiting}</p>
             </div>
           )}
         </div>

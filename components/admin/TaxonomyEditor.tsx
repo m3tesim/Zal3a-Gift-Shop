@@ -14,16 +14,16 @@ const blank = { en: "", ar: "" };
 function useRun() {
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
-  const run = (fn: () => Promise<ActionResult>, onOk?: () => void) =>
+  const run = (action: () => Promise<ActionResult>, onOk?: () => void) =>
     start(async () => {
-      const r = await fn();
-      setError(r.ok ? "" : r.error);
-      if (r.ok) onOk?.();
+      const result = await action();
+      setError(result.ok ? "" : result.error);
+      if (result.ok) onOk?.();
     });
   return { pending, error, run };
 }
 
-function Arrows({ onMove, first, last, disabled }: { onMove: (d: -1 | 1) => void; first: boolean; last: boolean; disabled: boolean }) {
+function Arrows({ onMove, first, last, disabled }: { onMove: (direction: -1 | 1) => void; first: boolean; last: boolean; disabled: boolean }) {
   const cls = "grid size-8 place-items-center rounded-full border-2 border-ink bg-paper font-extrabold hover:bg-sun disabled:opacity-25";
   return (
     <span className="flex gap-1">
@@ -40,30 +40,30 @@ function Arrows({ onMove, first, last, disabled }: { onMove: (d: -1 | 1) => void
 /* ───────── tags ───────── */
 
 function TagForm({ initial, onDone }: { initial: TagInput; onDone: () => void }) {
-  const [f, setF] = useState(initial);
+  const [form, setForm] = useState(initial);
   const [touched, setTouched] = useState(!initial.isNew);
   const { pending, error, run } = useRun();
-  const who = f.kind === "who";
+  const who = form.kind === "who";
   return (
     <form
       className="grid gap-3 rounded-2xl border-2 border-ink bg-cream p-4"
-      onSubmit={(e) => {
-        e.preventDefault();
-        run(() => saveTagAction(f), onDone);
+      onSubmit={(event) => {
+        event.preventDefault();
+        run(() => saveTagAction(form), onDone);
       }}
     >
-      <LInput label="Label" required value={f.label} onChange={(v) => setF((s) => ({ ...s, label: v, id: touched ? s.id : toSlug(v.en) }))} />
+      <LInput label="Label" required value={form.label} onChange={(label) => setForm((previous) => ({ ...previous, label, id: touched ? previous.id : toSlug(label.en) }))} />
       <div className="grid gap-3 sm:grid-cols-[120px_1fr]">
         <Labeled label="Emoji">
-          <TextInput value={f.emoji} maxLength={8} onChange={(e) => setF((s) => ({ ...s, emoji: e.target.value }))} />
+          <TextInput value={form.emoji} maxLength={8} onChange={(event) => setForm((previous) => ({ ...previous, emoji: event.target.value }))} />
         </Labeled>
-        <Labeled label="ID" hint={f.isNew ? "Used internally; can't be changed later." : undefined}>
+        <Labeled label="ID" hint={form.isNew ? "Used internally; can't be changed later." : undefined}>
           <TextInput
-            value={f.id}
-            disabled={!f.isNew}
-            onChange={(e) => {
+            value={form.id}
+            disabled={!form.isNew}
+            onChange={(event) => {
               setTouched(true);
-              setF((s) => ({ ...s, id: toSlug(e.target.value) }));
+              setForm((previous) => ({ ...previous, id: toSlug(event.target.value) }));
             }}
           />
         </Labeled>
@@ -72,11 +72,11 @@ function TagForm({ initial, onDone }: { initial: TagInput; onDone: () => void })
         <LInput
           label="Matchmaker line"
           hint="Shown under the suggested pot, e.g. “Mom will show it to every single visitor.”"
-          value={f.line}
-          onChange={(v) => setF((s) => ({ ...s, line: v }))}
+          value={form.line}
+          onChange={(line) => setForm((previous) => ({ ...previous, line }))}
         />
       )}
-      <Toggle label="Show in the gift matchmaker" checked={f.visible} onChange={(v) => setF((s) => ({ ...s, visible: v }))} />
+      <Toggle label="Show in the gift matchmaker" checked={form.visible} onChange={(checked) => setForm((previous) => ({ ...previous, visible: checked }))} />
       {error && <Notice kind="error">{error}</Notice>}
       <div className="flex gap-2">
         <button type="submit" disabled={pending} className="btn btn-pink py-1.5 text-base">
@@ -93,35 +93,35 @@ function TagForm({ initial, onDone }: { initial: TagInput; onDone: () => void })
 export function TagList({ kind, tags, title, sub }: { kind: TagKind; tags: Tag[]; title: string; sub: string }) {
   const [editing, setEditing] = useState<string | null>(null);
   const { pending, error, run } = useRun();
-  const list = tags.filter((t) => t.kind === kind);
+  const list = tags.filter((tag) => tag.kind === kind);
 
   return (
     <Panel title={title} sub={sub}>
       {error && <Notice kind="error">{error}</Notice>}
       <ul className="grid gap-2">
-        {list.map((t, i) =>
-          editing === t.id ? (
-            <li key={t.id}>
-              <TagForm initial={{ ...t, isNew: false }} onDone={() => setEditing(null)} />
+        {list.map((tag, index) =>
+          editing === tag.id ? (
+            <li key={tag.id}>
+              <TagForm initial={{ ...tag, isNew: false }} onDone={() => setEditing(null)} />
             </li>
           ) : (
-            <li key={t.id} className={`flex flex-wrap items-center gap-3 rounded-2xl border-2 border-line px-3 py-2 ${t.visible ? "" : "opacity-60"}`}>
+            <li key={tag.id} className={`flex flex-wrap items-center gap-3 rounded-2xl border-2 border-line px-3 py-2 ${tag.visible ? "" : "opacity-60"}`}>
               <span className="text-2xl" aria-hidden="true">
-                {t.emoji || "•"}
+                {tag.emoji || "•"}
               </span>
               <span className="min-w-0 flex-1">
-                <b>{t.label.en}</b> · <span lang="ar">{t.label.ar}</span>
-                {!t.visible && <span className="ms-2 text-xs font-bold text-ink-soft">(hidden from matchmaker)</span>}
-                {kind === "who" && t.line.en && <span className="block truncate text-sm text-ink-soft">“{t.line.en}”</span>}
+                <b>{tag.label.en}</b> · <span lang="ar">{tag.label.ar}</span>
+                {!tag.visible && <span className="ms-2 text-xs font-bold text-ink-soft">(hidden from matchmaker)</span>}
+                {kind === "who" && tag.line.en && <span className="block truncate text-sm text-ink-soft">“{tag.line.en}”</span>}
               </span>
-              <Arrows first={i === 0} last={i === list.length - 1} disabled={pending} onMove={(d) => run(() => moveListItemAction("tags", kind, t.id, d))} />
-              <button type="button" onClick={() => setEditing(t.id)} className="rounded-full border-2 border-ink bg-sky-soft px-3 py-0.5 font-bold hover:bg-sky">
+              <Arrows first={index === 0} last={index === list.length - 1} disabled={pending} onMove={(direction) => run(() => moveListItemAction("tags", kind, tag.id, direction))} />
+              <button type="button" onClick={() => setEditing(tag.id)} className="rounded-full border-2 border-ink bg-sky-soft px-3 py-0.5 font-bold hover:bg-sky">
                 Edit
               </button>
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => confirm(`Delete “${t.label.en}”? It's removed from every pot and plant that uses it.`) && run(() => deleteTagAction(kind, t.id))}
+                onClick={() => confirm(`Delete “${tag.label.en}”? It's removed from every pot and plant that uses it.`) && run(() => deleteTagAction(kind, tag.id))}
                 className="rounded-full border-2 border-line px-3 py-0.5 font-bold text-ink-soft hover:border-pink hover:text-pink"
               >
                 Delete
@@ -146,10 +146,10 @@ export function TagList({ kind, tags, title, sub }: { kind: TagKind; tags: Tag[]
 function Dots({ kind, level }: { kind: CareKind; level: number }) {
   return (
     <span className="flex gap-1" aria-label={`${level} of 3`}>
-      {[1, 2, 3].map((i) => (
+      {[1, 2, 3].map((dot) => (
         <i
-          key={i}
-          className={`block size-4 border-2 ${kind === "water" ? "-rotate-45 rounded-[50%_0_50%_50%]" : "rounded-full"} ${i <= level ? `border-ink ${kind === "sun" ? "bg-sun" : "bg-sky"}` : "border-ink/25 bg-paper"}`}
+          key={dot}
+          className={`block size-4 border-2 ${kind === "water" ? "-rotate-45 rounded-[50%_0_50%_50%]" : "rounded-full"} ${dot <= level ? `border-ink ${kind === "sun" ? "bg-sun" : "bg-sky"}` : "border-ink/25 bg-paper"}`}
         />
       ))}
     </span>
@@ -157,47 +157,47 @@ function Dots({ kind, level }: { kind: CareKind; level: number }) {
 }
 
 function CareForm({ initial, onDone }: { initial: CareInput; onDone: () => void }) {
-  const [f, setF] = useState(initial);
+  const [form, setForm] = useState(initial);
   const [touched, setTouched] = useState(!initial.isNew);
   const { pending, error, run } = useRun();
   return (
     <form
       className="grid gap-3 rounded-2xl border-2 border-ink bg-cream p-4"
-      onSubmit={(e) => {
-        e.preventDefault();
-        run(() => saveCareAction(f), onDone);
+      onSubmit={(event) => {
+        event.preventDefault();
+        run(() => saveCareAction(form), onDone);
       }}
     >
       <LInput
         label="Label"
         required
-        hint={f.kind === "water" ? "e.g. “Every 5 days” or “When the soil is fully dry”" : "e.g. “Shade is fine”"}
-        value={f.label}
-        onChange={(v) => setF((s) => ({ ...s, label: v, id: touched ? s.id : toSlug(v.en) }))}
+        hint={form.kind === "water" ? "e.g. “Every 5 days” or “When the soil is fully dry”" : "e.g. “Shade is fine”"}
+        value={form.label}
+        onChange={(label) => setForm((previous) => ({ ...previous, label, id: touched ? previous.id : toSlug(label.en) }))}
       />
       <fieldset className="grid gap-2">
-        <legend className="mb-2 text-sm font-bold">Meter ({f.kind === "water" ? "how thirsty" : "how much sun"})</legend>
+        <legend className="mb-2 text-sm font-bold">Meter ({form.kind === "water" ? "how thirsty" : "how much sun"})</legend>
         <div className="flex flex-wrap gap-2">
-          {[0, 1, 2, 3].map((n) => (
+          {[0, 1, 2, 3].map((level) => (
             <button
-              key={n}
+              key={level}
               type="button"
-              aria-pressed={f.level === n}
-              onClick={() => setF((s) => ({ ...s, level: n }))}
-              className={`flex items-center gap-2 rounded-full border-2 px-3 py-1 ${f.level === n ? "border-ink bg-sun-soft" : "border-line bg-paper hover:border-ink"}`}
+              aria-pressed={form.level === level}
+              onClick={() => setForm((previous) => ({ ...previous, level }))}
+              className={`flex items-center gap-2 rounded-full border-2 px-3 py-1 ${form.level === level ? "border-ink bg-sun-soft" : "border-line bg-paper hover:border-ink"}`}
             >
-              <Dots kind={f.kind} level={n} />
+              <Dots kind={form.kind} level={level} />
             </button>
           ))}
         </div>
       </fieldset>
-      {f.isNew && (
+      {form.isNew && (
         <Labeled label="ID" hint="Used internally; can't be changed later.">
           <TextInput
-            value={f.id}
-            onChange={(e) => {
+            value={form.id}
+            onChange={(event) => {
               setTouched(true);
-              setF((s) => ({ ...s, id: toSlug(e.target.value) }));
+              setForm((previous) => ({ ...previous, id: toSlug(event.target.value) }));
             }}
           />
         </Labeled>
@@ -218,31 +218,31 @@ function CareForm({ initial, onDone }: { initial: CareInput; onDone: () => void 
 export function CareList({ kind, options, title, sub }: { kind: CareKind; options: CareOption[]; title: string; sub: string }) {
   const [editing, setEditing] = useState<string | null>(null);
   const { pending, error, run } = useRun();
-  const list = options.filter((o) => o.kind === kind);
+  const list = options.filter((option) => option.kind === kind);
 
   return (
     <Panel title={title} sub={sub}>
       {error && <Notice kind="error">{error}</Notice>}
       <ul className="grid gap-2">
-        {list.map((o, i) =>
-          editing === o.id ? (
-            <li key={o.id}>
-              <CareForm initial={{ ...o, isNew: false }} onDone={() => setEditing(null)} />
+        {list.map((option, index) =>
+          editing === option.id ? (
+            <li key={option.id}>
+              <CareForm initial={{ ...option, isNew: false }} onDone={() => setEditing(null)} />
             </li>
           ) : (
-            <li key={o.id} className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-line px-3 py-2">
-              <Dots kind={kind} level={o.level} />
+            <li key={option.id} className="flex flex-wrap items-center gap-3 rounded-2xl border-2 border-line px-3 py-2">
+              <Dots kind={kind} level={option.level} />
               <span className="min-w-0 flex-1">
-                <b>{o.label.en}</b> · <span lang="ar">{o.label.ar}</span>
+                <b>{option.label.en}</b> · <span lang="ar">{option.label.ar}</span>
               </span>
-              <Arrows first={i === 0} last={i === list.length - 1} disabled={pending} onMove={(d) => run(() => moveListItemAction("care_options", kind, o.id, d))} />
-              <button type="button" onClick={() => setEditing(o.id)} className="rounded-full border-2 border-ink bg-sky-soft px-3 py-0.5 font-bold hover:bg-sky">
+              <Arrows first={index === 0} last={index === list.length - 1} disabled={pending} onMove={(direction) => run(() => moveListItemAction("care_options", kind, option.id, direction))} />
+              <button type="button" onClick={() => setEditing(option.id)} className="rounded-full border-2 border-ink bg-sky-soft px-3 py-0.5 font-bold hover:bg-sky">
                 Edit
               </button>
               <button
                 type="button"
                 disabled={pending}
-                onClick={() => confirm(`Delete “${o.label.en}”?`) && run(() => deleteCareAction(kind, o.id))}
+                onClick={() => confirm(`Delete “${option.label.en}”?`) && run(() => deleteCareAction(kind, option.id))}
                 className="rounded-full border-2 border-line px-3 py-0.5 font-bold text-ink-soft hover:border-pink hover:text-pink"
               >
                 Delete

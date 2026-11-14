@@ -74,80 +74,80 @@ export type Catalog = {
   ratings: Record<string, Rating>;
 };
 
-export const tagsOf = (c: Catalog, kind: TagKind) => c.tags.filter((t) => t.kind === kind);
-export const careOf = (c: Catalog, kind: CareKind, id: string | null) => c.care.find((o) => o.kind === kind && o.id === id) ?? null;
+export const tagsOf = (catalog: Catalog, kind: TagKind) => catalog.tags.filter((tag) => tag.kind === kind);
+export const careOf = (catalog: Catalog, kind: CareKind, id: string | null) => catalog.care.find((option) => option.kind === kind && option.id === id) ?? null;
 
 export const MAX_QTY = 9;
 
 export const comboKey = (plants: string[]) => plants.join("+");
-export const soldOut = (x: { stock: number | null }) => x.stock !== null && x.stock <= 0;
-export const applySale = (n: number, pct: number) => (pct > 0 ? Math.round((n * (100 - pct)) / 100) : n);
+export const soldOut = (item: { stock: number | null }) => item.stock !== null && item.stock <= 0;
+export const applySale = (price: number, pct: number) => (pct > 0 ? Math.round((price * (100 - pct)) / 100) : price);
 
-export function plantOf(c: Catalog, id: string) {
-  return c.plants.find((p) => p.id === id);
+export function plantOf(catalog: Catalog, id: string) {
+  return catalog.plants.find((plant) => plant.id === id);
 }
-export function productOf(c: Catalog, id: string) {
-  return c.products.find((p) => p.id === id);
+export function productOf(catalog: Catalog, id: string) {
+  return catalog.products.find((product) => product.id === id);
 }
 
 /** Price before and after the product's sale, for a given plant per slot. */
-export function linePrice(c: Catalog, product: Product, plants: string[]) {
-  const full = product.price + plants.reduce((n, id) => n + (plantOf(c, id)?.price ?? 0), 0);
+export function linePrice(catalog: Catalog, product: Product, plants: string[]) {
+  const full = product.price + plants.reduce((total, id) => total + (plantOf(catalog, id)?.price ?? 0), 0);
   return { full, unit: applySale(full, product.salePercent) };
 }
 
 /** Plants customers can pick right now (visible and in stock). */
-export const pickablePlants = (c: Catalog) => c.plants.filter((p) => p.visible && !soldOut(p));
+export const pickablePlants = (catalog: Catalog) => catalog.plants.filter((plant) => plant.visible && !soldOut(plant));
 
 /** The product's default plants, swapping out any that are hidden or sold out. */
-export function defaultPlantsFor(c: Catalog, product: Product) {
-  const ok = pickablePlants(c);
-  const fallback = ok.find((p) => !p.potOnly) ?? ok[0];
-  return product.slots.map((_, i) => {
-    const id = product.defaultPlants[i];
-    return ok.some((p) => p.id === id) ? id : (fallback?.id ?? id);
+export function defaultPlantsFor(catalog: Catalog, product: Product) {
+  const ok = pickablePlants(catalog);
+  const fallback = ok.find((plant) => !plant.potOnly) ?? ok[0];
+  return product.slots.map((_slot, slotIndex) => {
+    const id = product.defaultPlants[slotIndex];
+    return ok.some((plant) => plant.id === id) ? id : (fallback?.id ?? id);
   });
 }
 
 export const variantImage = (product: Product, plants: string[]) => product.variants[comboKey(plants)] ?? null;
 
 /** Most a customer can add: limited by pot stock and by each plant's stock. */
-export function maxQty(c: Catalog, product: Product, plants: string[]) {
+export function maxQty(catalog: Catalog, product: Product, plants: string[]) {
   let max = MAX_QTY;
   if (product.stock !== null) max = Math.min(max, product.stock);
   const counts = new Map<string, number>();
   plants.forEach((id) => counts.set(id, (counts.get(id) ?? 0) + 1));
-  counts.forEach((n, id) => {
-    const p = plantOf(c, id);
-    if (p?.stock != null) max = Math.min(max, Math.floor(p.stock / n));
+  counts.forEach((count, id) => {
+    const plant = plantOf(catalog, id);
+    if (plant?.stock != null) max = Math.min(max, Math.floor(plant.stock / count));
   });
   return Math.max(0, max);
 }
 
 /** "Mini cactus", "2 × Mini cactus" or "Mini cactus + Echeveria rosette" */
-export function plantsSummary(c: Catalog, plants: string[], locale: Locale) {
-  const name = (id: string) => plantOf(c, id)?.name[locale] ?? id;
-  if (plants.length > 1 && plants.every((p) => p === plants[0])) return `${plants.length} × ${name(plants[0])}`;
+export function plantsSummary(catalog: Catalog, plants: string[], locale: Locale) {
+  const name = (id: string) => plantOf(catalog, id)?.name[locale] ?? id;
+  if (plants.length > 1 && plants.every((plantId) => plantId === plants[0])) return `${plants.length} × ${name(plants[0])}`;
   return plants.map(name).join(" + ");
 }
 
 /** Gift matchmaker: both answers count; vibe weighs a little more than recipient. */
-export function rankMatches(c: Catalog, who: Who, vibe: Vibe) {
-  const score = (p: Product) => (p.vibes.includes(vibe) ? 3 : 0) + (p.recipients.includes(who) ? 2 : 0);
-  return c.products
-    .filter((p) => p.visible && !soldOut(p))
-    .map((p) => ({ p, s: score(p) }))
-    .sort((a, b) => b.s - a.s || a.p.sort - b.p.sort)
-    .map((x) => x.p);
+export function rankMatches(catalog: Catalog, who: Who, vibe: Vibe) {
+  const score = (product: Product) => (product.vibes.includes(vibe) ? 3 : 0) + (product.recipients.includes(who) ? 2 : 0);
+  return catalog.products
+    .filter((product) => product.visible && !soldOut(product))
+    .map((product) => ({ product, score: score(product) }))
+    .sort((first, second) => second.score - first.score || first.product.sort - second.product.sort)
+    .map((match) => match.product);
 }
 
 /** Pick the plant that best suits the person and vibe (falls back to the pot's defaults). */
-export function suggestPlants(c: Catalog, product: Product, who: Who, vibe?: Vibe) {
-  const score = (p: Plant) => (p.recipients.includes(who) ? 2 : 0) + (vibe && p.vibes.includes(vibe) ? 1 : 0);
-  const best = pickablePlants(c)
-    .filter((p) => !p.potOnly && score(p) > 0)
-    .sort((a, b) => score(b) - score(a) || a.sort - b.sort)[0];
-  return best ? product.slots.map(() => best.id) : defaultPlantsFor(c, product);
+export function suggestPlants(catalog: Catalog, product: Product, who: Who, vibe?: Vibe) {
+  const score = (plant: Plant) => (plant.recipients.includes(who) ? 2 : 0) + (vibe && plant.vibes.includes(vibe) ? 1 : 0);
+  const best = pickablePlants(catalog)
+    .filter((plant) => !plant.potOnly && score(plant) > 0)
+    .sort((first, second) => score(second) - score(first) || first.sort - second.sort)[0];
+  return best ? product.slots.map(() => best.id) : defaultPlantsFor(catalog, product);
 }
 
 // Full Tailwind class strings so the compiler can see them.
@@ -160,9 +160,9 @@ export const TINT: Record<Tint, { soft: string; solid: string; text: string }> =
   orange: { soft: "bg-orange-soft", solid: "bg-orange", text: "text-ink" },
 };
 
-export function cartSubtotal(c: Catalog, lines: { id: string; plants: string[]; qty: number }[]) {
-  return lines.reduce((n, l) => {
-    const p = productOf(c, l.id);
-    return p ? n + linePrice(c, p, l.plants).unit * l.qty : n;
+export function cartSubtotal(catalog: Catalog, lines: { id: string; plants: string[]; qty: number }[]) {
+  return lines.reduce((total, line) => {
+    const product = productOf(catalog, line.id);
+    return product ? total + linePrice(catalog, product, line.plants).unit * line.qty : total;
   }, 0);
 }

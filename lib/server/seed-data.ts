@@ -51,9 +51,9 @@ export const SEED_PLANTS: SeedPlant[] = [
   },
 ];
 
-const h = (cm: number): L => ({ en: `${cm} cm`, ar: `${cm} سم` });
-const g = (grams: number): L => ({ en: `${grams} g`, ar: `${grams} جرام` });
-const S = {
+const heightLabel = (cm: number): L => ({ en: `${cm} cm`, ar: `${cm} سم` });
+const weightLabel = (grams: number): L => ({ en: `${grams} g`, ar: `${grams} جرام` });
+const SPEC_LABELS = {
   height: { en: "Height", ar: "الطول" },
   opening: { en: "Opening", ar: "الفتحة" },
   material: { en: "Material", ar: "الخامة" },
@@ -65,7 +65,7 @@ const spec = (label: L, value: L): Spec => ({ label, value });
 const ceramic: L = { en: "Glazed ceramic", ar: "سيراميك لامع" };
 const plug: L = { en: "Hole + rubber plug", ar: "فتحة + سدادة كاوتش" };
 const onePot: L[] = [{ en: "Pot", ar: "القصرية" }];
-const catSpecs = [spec(S.height, h(14)), spec(S.opening, h(8.5)), spec(S.material, ceramic), spec(S.drainage, plug), spec(S.weight, g(420))];
+const catSpecs = [spec(SPEC_LABELS.height, heightLabel(14)), spec(SPEC_LABELS.opening, heightLabel(8.5)), spec(SPEC_LABELS.material, ceramic), spec(SPEC_LABELS.drainage, plug), spec(SPEC_LABELS.weight, weightLabel(420))];
 
 export const SEED_PRODUCTS: SeedProduct[] = [
   {
@@ -87,11 +87,11 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     tint: "pink", photo: "duo.webp", pos: "50% 60%",
     vibes: ["giggly", "quirky"], recipients: ["bestie", "crush"],
     specs: [
-      spec(S.height, { en: "14 cm each", ar: "14 سم لكل واحدة" }),
-      spec(S.opening, h(8.5)),
-      spec(S.material, ceramic),
-      spec(S.drainage, plug),
-      spec(S.inBox, { en: "2 pots, 2 plants, care card", ar: "قصريتين، زرعتين، كارت عناية" }),
+      spec(SPEC_LABELS.height, { en: "14 cm each", ar: "14 سم لكل واحدة" }),
+      spec(SPEC_LABELS.opening, heightLabel(8.5)),
+      spec(SPEC_LABELS.material, ceramic),
+      spec(SPEC_LABELS.drainage, plug),
+      spec(SPEC_LABELS.inBox, { en: "2 pots, 2 plants, care card", ar: "قصريتين، زرعتين، كارت عناية" }),
     ],
     visible: true, featured: true,
   },
@@ -124,9 +124,9 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     tint: "lime", photo: "dino.webp", pos: "50% 55%",
     vibes: ["quirky", "cute"], recipients: ["kid", "coworker"],
     specs: [
-      spec(S.height, h(11)), spec(S.opening, h(9)),
-      spec(S.material, { en: "Matte resin", ar: "ريزن مطفي" }),
-      spec(S.drainage, plug), spec(S.weight, g(310)),
+      spec(SPEC_LABELS.height, heightLabel(11)), spec(SPEC_LABELS.opening, heightLabel(9)),
+      spec(SPEC_LABELS.material, { en: "Matte resin", ar: "ريزن مطفي" }),
+      spec(SPEC_LABELS.drainage, plug), spec(SPEC_LABELS.weight, weightLabel(310)),
     ],
     visible: true, featured: false,
   },
@@ -159,9 +159,9 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     tint: "lilac", photo: "twinkle.webp", pos: "50% 50%",
     vibes: ["cozy", "cute"], recipients: ["coworker", "me", "kid"],
     specs: [
-      spec(S.height, h(8)), spec(S.opening, h(6.5)),
-      spec(S.material, { en: "Cement-resin blend", ar: "خليط أسمنت وريزن" }),
-      spec(S.drainage, { en: "Hole", ar: "فتحة" }), spec(S.weight, g(190)),
+      spec(SPEC_LABELS.height, heightLabel(8)), spec(SPEC_LABELS.opening, heightLabel(6.5)),
+      spec(SPEC_LABELS.material, { en: "Cement-resin blend", ar: "خليط أسمنت وريزن" }),
+      spec(SPEC_LABELS.drainage, { en: "Hole", ar: "فتحة" }), spec(SPEC_LABELS.weight, weightLabel(190)),
     ],
     visible: true, featured: false,
   },

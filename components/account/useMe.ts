@@ -8,8 +8,8 @@ let loading: Promise<void> | null = null;
 
 /** Who's signed in. Pages are pre-rendered, so this is fetched once in the browser. */
 export function useMe() {
-  const me = useShop((s) => s.me);
-  const setMe = useShop((s) => s.setMe);
+  const me = useShop((state) => state.me);
+  const setMe = useShop((state) => state.setMe);
   useEffect(() => {
     if (me !== undefined || loading) return;
     loading = meAction()
@@ -23,5 +23,5 @@ export function useMe() {
 /** Call after signing in/out or editing the profile so the header etc. update. */
 export function refreshMe() {
   loading = null;
-  return meAction().then((m) => useShop.getState().setMe(m));
+  return meAction().then((customer) => useShop.getState().setMe(customer));
 }

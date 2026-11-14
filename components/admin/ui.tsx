@@ -54,7 +54,7 @@ export function NumberInput({
   max,
   allowEmpty,
   ...rest
-}: { value: number | null; onChange: (n: number | null) => void; min?: number; max?: number; allowEmpty?: boolean } & Omit<
+}: { value: number | null; onChange: (value: number | null) => void; min?: number; max?: number; allowEmpty?: boolean } & Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "value" | "onChange" | "min" | "max"
 >) {
@@ -68,10 +68,10 @@ export function NumberInput({
       max={max}
       step={1}
       value={value ?? ""}
-      onChange={(e) => {
-        const v = e.target.value;
-        if (v === "") onChange(allowEmpty ? null : 0);
-        else onChange(Math.max(min, Math.round(Number(v))));
+      onChange={(event) => {
+        const raw = event.target.value;
+        if (raw === "") onChange(allowEmpty ? null : 0);
+        else onChange(Math.max(min, Math.round(Number(raw))));
       }}
       {...rest}
       className={`${inputCls} tabular-nums ${rest.className ?? ""}`}
@@ -90,7 +90,7 @@ export function LInput({
 }: {
   label: string;
   value: L;
-  onChange: (v: L) => void;
+  onChange: (value: L) => void;
   multiline?: boolean;
   hint?: string;
   required?: boolean;
@@ -107,9 +107,9 @@ export function LInput({
       className: `${inputCls} ${lang === "ar" ? "font-arbody" : ""}`,
     };
     return multiline ? (
-      <textarea {...common} rows={3} onChange={(e) => onChange({ ...value, [lang]: e.target.value })} className={`${common.className} resize-y`} />
+      <textarea {...common} rows={3} onChange={(event) => onChange({ ...value, [lang]: event.target.value })} className={`${common.className} resize-y`} />
     ) : (
-      <input {...common} onChange={(e) => onChange({ ...value, [lang]: e.target.value })} />
+      <input {...common} onChange={(event) => onChange({ ...value, [lang]: event.target.value })} />
     );
   };
   return (
@@ -133,10 +133,10 @@ export function LInput({
   );
 }
 
-export function Toggle({ checked, onChange, label, disabled }: { checked: boolean; onChange: (v: boolean) => void; label: string; disabled?: boolean }) {
+export function Toggle({ checked, onChange, label, disabled }: { checked: boolean; onChange: (nextChecked: boolean) => void; label: string; disabled?: boolean }) {
   return (
     <label className={`inline-flex items-center gap-2.5 font-bold ${disabled ? "opacity-50" : "cursor-pointer"}`}>
-      <input type="checkbox" className="peer sr-only" checked={checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} />
+      <input type="checkbox" className="peer sr-only" checked={checked} disabled={disabled} onChange={(event) => onChange(event.target.checked)} />
       <span
         aria-hidden="true"
         className="relative h-7 w-12 shrink-0 rounded-full border-[3px] border-ink bg-line transition-colors peer-checked:bg-lime peer-focus-visible:outline-3 peer-focus-visible:outline-pink after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-paper after:ring-2 after:ring-ink after:transition-transform peer-checked:after:translate-x-5"
@@ -155,25 +155,25 @@ export function Chips<T extends string>({
 }: {
   options: { key: T; label: string }[];
   value: T[];
-  onChange: (v: T[]) => void;
+  onChange: (selected: T[]) => void;
   label: string;
 }) {
   return (
     <fieldset className="grid gap-2">
       <legend className="mb-2 text-sm font-bold">{label}</legend>
       <div className="flex flex-wrap gap-2">
-        {options.map((o) => {
-          const on = value.includes(o.key);
+        {options.map((option) => {
+          const on = value.includes(option.key);
           return (
             <button
-              key={o.key}
+              key={option.key}
               type="button"
               aria-pressed={on}
-              onClick={() => onChange(on ? value.filter((v) => v !== o.key) : [...value, o.key])}
+              onClick={() => onChange(on ? value.filter((key) => key !== option.key) : [...value, option.key])}
               className={`rounded-full border-2 px-3 py-1 text-sm font-bold transition-colors ${on ? "border-ink bg-sun" : "border-line bg-paper hover:border-ink"}`}
             >
               {on ? "✓ " : ""}
-              {o.label}
+              {option.label}
             </button>
           );
         })}
@@ -218,8 +218,8 @@ export function ImageUpload({
     setError("");
     try {
       await onChange(await upload(file));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setBusy(false);
       if (input.current) input.current.value = "";
@@ -229,15 +229,15 @@ export function ImageUpload({
   return (
     <div className="grid content-start gap-2">
       <div
-        onDragOver={(e) => {
-          e.preventDefault();
+        onDragOver={(event) => {
+          event.preventDefault();
           setOver(true);
         }}
         onDragLeave={() => setOver(false)}
-        onDrop={(e) => {
-          e.preventDefault();
+        onDrop={(event) => {
+          event.preventDefault();
           setOver(false);
-          handle(e.dataTransfer.files[0]);
+          handle(event.dataTransfer.files[0]);
         }}
         className={`relative overflow-hidden rounded-2xl border-[3px] ${over ? "border-pink bg-pink-soft" : value ? "border-ink" : "border-dashed border-ink/40 bg-cream"} ${className}`}
       >
@@ -268,7 +268,7 @@ export function ImageUpload({
           </button>
         )}
       </div>
-      <input ref={input} type="file" accept="image/*" className="hidden" onChange={(e) => handle(e.target.files?.[0])} />
+      <input ref={input} type="file" accept="image/*" className="hidden" onChange={(event) => handle(event.target.files?.[0])} />
       {error && <p className="text-sm font-bold text-pink">{error}</p>}
     </div>
   );

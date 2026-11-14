@@ -1,19 +1,19 @@
 // Editable lists: "best for" + vibe tags, and sun / watering care options.
-import { getDb, json, tx } from "./db";
+import { getDb, json, transaction } from "./db";
 import type { CareKind, CareOption, L, Tag, TagKind } from "@/lib/catalog";
 
-export function saveTag(t: Omit<Tag, "sort">, isNew: boolean) {
+export function saveTag(tag: Omit<Tag, "sort">, isNew: boolean) {
   const db = getDb();
-  const label = JSON.stringify(t.label);
-  const line = JSON.stringify(t.line);
+  const label = JSON.stringify(tag.label);
+  const line = JSON.stringify(tag.line);
   if (isNew) {
-    const sort = (db.prepare("SELECT COALESCE(MAX(sort), 0) + 1 AS n FROM tags WHERE kind = ?").get(t.kind) as { n: number }).n;
+    const sort = (db.prepare("SELECT COALESCE(MAX(sort), 0) + 1 AS n FROM tags WHERE kind = ?").get(tag.kind) as { n: number }).n;
     db.prepare("INSERT INTO tags (kind, id, label, emoji, line, visible, sort) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
-      t.kind, t.id, label, t.emoji, line, t.visible ? 1 : 0, sort,
+      tag.kind, tag.id, label, tag.emoji, line, tag.visible ? 1 : 0, sort,
     );
   } else {
     db.prepare("UPDATE tags SET label = ?, emoji = ?, line = ?, visible = ? WHERE kind = ? AND id = ?").run(
-      label, t.emoji, line, t.visible ? 1 : 0, t.kind, t.id,
+      label, tag.emoji, line, tag.visible ? 1 : 0, tag.kind, tag.id,
     );
   }
 }
@@ -24,27 +24,27 @@ export const tagExists = (kind: TagKind, id: string) =>
 /** Deletes the tag and removes it from every pot and plant that used it. */
 export function deleteTag(kind: TagKind, id: string) {
   const column = kind === "who" ? "recipients" : "vibes";
-  tx(() => {
+  transaction(() => {
     const db = getDb();
     for (const table of ["products", "plants"] as const) {
       const rows = db.prepare(`SELECT id, ${column} AS list FROM ${table}`).all() as { id: string; list: string }[];
       const upd = db.prepare(`UPDATE ${table} SET ${column} = ? WHERE id = ?`);
-      for (const r of rows) {
-        const list = json<string[]>(r.list, []);
-        if (list.includes(id)) upd.run(JSON.stringify(list.filter((x) => x !== id)), r.id);
+      for (const row of rows) {
+        const list = json<string[]>(row.list, []);
+        if (list.includes(id)) upd.run(JSON.stringify(list.filter((tagId) => tagId !== id)), row.id);
       }
     }
     db.prepare("DELETE FROM tags WHERE kind = ? AND id = ?").run(kind, id);
   });
 }
 
-export function saveCare(o: Omit<CareOption, "sort">, isNew: boolean) {
+export function saveCare(option: Omit<CareOption, "sort">, isNew: boolean) {
   const db = getDb();
   if (isNew) {
-    const sort = (db.prepare("SELECT COALESCE(MAX(sort), 0) + 1 AS n FROM care_options WHERE kind = ?").get(o.kind) as { n: number }).n;
-    db.prepare("INSERT INTO care_options (kind, id, label, level, sort) VALUES (?, ?, ?, ?, ?)").run(o.kind, o.id, JSON.stringify(o.label), o.level, sort);
+    const sort = (db.prepare("SELECT COALESCE(MAX(sort), 0) + 1 AS n FROM care_options WHERE kind = ?").get(option.kind) as { n: number }).n;
+    db.prepare("INSERT INTO care_options (kind, id, label, level, sort) VALUES (?, ?, ?, ?, ?)").run(option.kind, option.id, JSON.stringify(option.label), option.level, sort);
   } else {
-    db.prepare("UPDATE care_options SET label = ?, level = ? WHERE kind = ? AND id = ?").run(JSON.stringify(o.label), o.level, o.kind, o.id);
+    db.prepare("UPDATE care_options SET label = ?, level = ? WHERE kind = ? AND id = ?").run(JSON.stringify(option.label), option.level, option.kind, option.id);
   }
 }
 
@@ -55,7 +55,7 @@ export const careExists = (kind: CareKind, id: string) =>
 export function deleteCare(kind: CareKind, id: string) {
   const db = getDb();
   const column = kind === "sun" ? "sun_option" : "water_option";
-  const users = (db.prepare(`SELECT name FROM plants WHERE ${column} = ?`).all(id) as { name: string }[]).map((r) => json<L>(r.name, { en: "", ar: "" }).en);
+  const users = (db.prepare(`SELECT name FROM plants WHERE ${column} = ?`).all(id) as { name: string }[]).map((row) => json<L>(row.name, { en: "", ar: "" }).en);
   if (users.length) return users;
   db.prepare("DELETE FROM care_options WHERE kind = ? AND id = ?").run(kind, id);
   return [];
@@ -63,14 +63,14 @@ export function deleteCare(kind: CareKind, id: string) {
 
 /** Swap with the neighbour above (-1) or below (+1) within the same list. */
 export function moveListItem(table: "tags" | "care_options", kind: string, id: string, dir: -1 | 1) {
-  tx(() => {
+  transaction(() => {
     const db = getDb();
     const rows = db.prepare(`SELECT id FROM ${table} WHERE kind = ? ORDER BY sort, id`).all(kind) as { id: string }[];
-    const i = rows.findIndex((r) => r.id === id);
-    const j = i + dir;
-    if (i < 0 || j < 0 || j >= rows.length) return;
-    [rows[i], rows[j]] = [rows[j], rows[i]];
+    const currentIndex = rows.findIndex((row) => row.id === id);
+    const targetIndex = currentIndex + dir;
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= rows.length) return;
+    [rows[currentIndex], rows[targetIndex]] = [rows[targetIndex], rows[currentIndex]];
     const upd = db.prepare(`UPDATE ${table} SET sort = ? WHERE kind = ? AND id = ?`);
-    rows.forEach((r, k) => upd.run(k + 1, kind, r.id));
+    rows.forEach((row, position) => upd.run(position + 1, kind, row.id));
   });
 }

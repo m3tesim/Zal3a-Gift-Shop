@@ -25,12 +25,12 @@ function Phone({ phone }: { phone: string }) {
 
 export default async function OrderPage({ params }: { params: Promise<{ number: string }> }) {
   const { number } = await params;
-  const o = getOrder(number);
-  if (!o) notFound();
-  const t = getDict("en");
-  const events = orderEvents(o.number);
-  const emails = listEmails({ orderNumber: o.number });
-  const account = o.customerId ? getCustomer(o.customerId) : null;
+  const order = getOrder(number);
+  if (!order) notFound();
+  const dictionary = getDict("en");
+  const events = orderEvents(order.number);
+  const emails = listEmails({ orderNumber: order.number });
+  const account = order.customerId ? getCustomer(order.customerId) : null;
   const fmt = (iso: string) => new Date(iso).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 
   return (
@@ -40,54 +40,54 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
           <Link href="/admin/orders" className="text-sm font-bold text-ink-soft hover:text-pink">
             ← All orders
           </Link>
-          <h1 className="font-logo text-4xl">{o.number}</h1>
+          <h1 className="font-logo text-4xl">{order.number}</h1>
           <p className="text-ink-soft">
-            {new Date(o.createdAt).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })} · ordered in {o.locale === "ar" ? "Arabic" : "English"}
+            {new Date(order.createdAt).toLocaleString("en-GB", { dateStyle: "full", timeStyle: "short" })} · ordered in {order.locale === "ar" ? "Arabic" : "English"}
           </p>
         </div>
-        <StatusSelect number={o.number} status={o.status} />
+        <StatusSelect number={order.number} status={order.status} />
       </header>
 
       <div className="grid gap-5 md:grid-cols-2">
         <Panel title="Customer">
           <p className="font-bold">
-            {o.contact.name}
+            {order.contact.name}
             {account && <span className="ms-2 rounded-full bg-lilac-soft px-2 py-0.5 text-xs font-extrabold">has an account</span>}
           </p>
-          <Phone phone={o.contact.phone} />
-          {o.contact.email && (
-            <a href={`mailto:${o.contact.email}`} className="underline underline-offset-4">
-              {o.contact.email}
+          <Phone phone={order.contact.phone} />
+          {order.contact.email && (
+            <a href={`mailto:${order.contact.email}`} className="underline underline-offset-4">
+              {order.contact.email}
             </a>
           )}
         </Panel>
 
-        <Panel title={o.gift ? "🎁 Gift recipient" : "Delivery"}>
-          {o.gift && (
+        <Panel title={order.gift ? "🎁 Gift recipient" : "Delivery"}>
+          {order.gift && (
             <>
-              <p className="font-bold">{o.gift.name}</p>
-              <Phone phone={o.gift.phone} />
+              <p className="font-bold">{order.gift.name}</p>
+              <Phone phone={order.gift.phone} />
             </>
           )}
           <p>
-            {o.address.street}
-            {o.address.apartment && `, ${o.address.apartment}`}
+            {order.address.street}
+            {order.address.apartment && `, ${order.address.apartment}`}
             <br />
-            {o.address.area}, {t.checkout.govs[o.address.governorate]}
+            {order.address.area}, {dictionary.checkout.govs[order.address.governorate]}
           </p>
-          {o.address.date && <p>Preferred date: <b>{o.address.date}</b></p>}
-          {o.address.notes && <p className="rounded-xl bg-cream px-3 py-2">“{o.address.notes}”</p>}
+          {order.address.date && <p>Preferred date: <b>{order.address.date}</b></p>}
+          {order.address.notes && <p className="rounded-xl bg-cream px-3 py-2">“{order.address.notes}”</p>}
         </Panel>
 
-        {o.gift && (
+        {order.gift && (
           <Panel title="Gift wrap & note">
             <p>
-              Wrap: <b>{t.checkout.wraps[o.gift.wrap].title}</b>
+              Wrap: <b>{dictionary.checkout.wraps[order.gift.wrap].title}</b>
             </p>
-            {o.gift.hidePrices && <p className="font-bold text-pink">Hide prices on the receipt</p>}
-            {o.gift.note ? (
+            {order.gift.hidePrices && <p className="font-bold text-pink">Hide prices on the receipt</p>}
+            {order.gift.note ? (
               <p dir="auto" className="rounded-2xl bg-sun-soft p-4 text-lg font-semibold">
-                “{o.gift.note}”
+                “{order.gift.note}”
               </p>
             ) : (
               <p className="text-ink-soft">No note.</p>
@@ -96,33 +96,33 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
         )}
 
         <Panel title="Payment">
-          <p className="font-bold">{t.checkout.pay[o.payment].title}</p>
-          <p className="text-ink-soft">{t.checkout.pay[o.payment].sub}</p>
+          <p className="font-bold">{dictionary.checkout.pay[order.payment].title}</p>
+          <p className="text-ink-soft">{dictionary.checkout.pay[order.payment].sub}</p>
         </Panel>
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
         <Panel title="Timeline" sub="Changing the status above emails the customer.">
           <ol className="grid gap-2">
-            {events.map((e, i) => (
-              <li key={i} className="flex items-center justify-between gap-3 rounded-xl bg-cream px-3 py-1.5">
-                <b className="capitalize">{t.status[e.status]}</b>
-                <span className="text-sm text-ink-soft">{fmt(e.at)}</span>
+            {events.map((statusEvent, index) => (
+              <li key={index} className="flex items-center justify-between gap-3 rounded-xl bg-cream px-3 py-1.5">
+                <b className="capitalize">{dictionary.status[statusEvent.status]}</b>
+                <span className="text-sm text-ink-soft">{fmt(statusEvent.at)}</span>
               </li>
             ))}
           </ol>
         </Panel>
-        <Panel title="Emails to the customer" sub={o.contact.email ? `Sent to ${o.contact.email}` : "No email address on this order, so no updates are sent."}>
+        <Panel title="Emails to the customer" sub={order.contact.email ? `Sent to ${order.contact.email}` : "No email address on this order, so no updates are sent."}>
           {emails.length === 0 ? (
             <p className="text-ink-soft">None yet.</p>
           ) : (
             <ul className="grid gap-2">
-              {emails.map((e) => (
-                <li key={e.id}>
-                  <a href={`/api/admin/emails/${e.id}`} target="_blank" className="flex items-center justify-between gap-3 rounded-xl border-2 border-line px-3 py-1.5 hover:border-ink">
-                    <span className="truncate font-bold">{e.subject}</span>
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-extrabold ${e.status === "sent" ? "bg-lime" : e.status === "failed" ? "bg-pink text-white" : "bg-line"}`}>
-                      {e.status === "skipped" ? "not sent" : e.status}
+              {emails.map((email) => (
+                <li key={email.id}>
+                  <a href={`/api/admin/emails/${email.id}`} target="_blank" className="flex items-center justify-between gap-3 rounded-xl border-2 border-line px-3 py-1.5 hover:border-ink">
+                    <span className="truncate font-bold">{email.subject}</span>
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-extrabold ${email.status === "sent" ? "bg-lime" : email.status === "failed" ? "bg-pink text-white" : "bg-line"}`}>
+                      {email.status === "skipped" ? "not sent" : email.status}
                     </span>
                   </a>
                 </li>
@@ -134,30 +134,30 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
 
       <Panel title="Items">
         <ul className="grid gap-2">
-          {o.items.map((i, k) => (
-            <li key={k} className="flex flex-wrap justify-between gap-3 border-b-2 border-dashed border-line pb-2">
+          {order.items.map((item, itemIndex) => (
+            <li key={itemIndex} className="flex flex-wrap justify-between gap-3 border-b-2 border-dashed border-line pb-2">
               <span>
                 <b>
-                  {i.qty} × {i.name.en}
+                  {item.qty} × {item.name.en}
                 </b>
-                <span className="text-ink-soft"> · {i.plants.map((p) => p.name.en).join(" + ")}</span>
+                <span className="text-ink-soft"> · {item.plants.map((plant) => plant.name.en).join(" + ")}</span>
               </span>
-              <span className="font-bold tabular-nums">{formatPrice(i.unit * i.qty, "en")}</span>
+              <span className="font-bold tabular-nums">{formatPrice(item.unit * item.qty, "en")}</span>
             </li>
           ))}
         </ul>
         <dl className="grid gap-1 tabular-nums">
           <div className="flex justify-between">
             <dt className="text-ink-soft">Subtotal</dt>
-            <dd>{formatPrice(o.subtotal, "en")}</dd>
+            <dd>{formatPrice(order.subtotal, "en")}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-ink-soft">Delivery</dt>
-            <dd>{o.delivery ? formatPrice(o.delivery, "en") : "Free"}</dd>
+            <dd>{order.delivery ? formatPrice(order.delivery, "en") : "Free"}</dd>
           </div>
           <div className="flex justify-between text-xl font-extrabold">
             <dt>Total</dt>
-            <dd>{formatPrice(o.total, "en")}</dd>
+            <dd>{formatPrice(order.total, "en")}</dd>
           </div>
         </dl>
       </Panel>

@@ -41,17 +41,17 @@ export async function sessionToken() {
 }
 
 // Simple in-memory brute-force guard for the login form.
-const attempts = new Map<string, { n: number; until: number }>();
+const attempts = new Map<string, { count: number; until: number }>();
 const WINDOW = 15 * 60_000;
 const LIMIT = 8;
 
 export function loginBlocked(key: string) {
-  const a = attempts.get(key);
-  return !!a && a.n >= LIMIT && a.until > Date.now();
+  const attempt = attempts.get(key);
+  return !!attempt && attempt.count >= LIMIT && attempt.until > Date.now();
 }
 export function loginFailed(key: string) {
-  const a = attempts.get(key);
-  attempts.set(key, a && a.until > Date.now() ? { n: a.n + 1, until: a.until } : { n: 1, until: Date.now() + WINDOW });
+  const attempt = attempts.get(key);
+  attempts.set(key, attempt && attempt.until > Date.now() ? { count: attempt.count + 1, until: attempt.until } : { count: 1, until: Date.now() + WINDOW });
 }
 export function loginSucceeded(key: string) {
   attempts.delete(key);

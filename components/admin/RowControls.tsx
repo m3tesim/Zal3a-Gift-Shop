@@ -9,10 +9,10 @@ type Table = "products" | "plants";
 function useSave() {
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
-  const run = (fn: () => Promise<ActionResult>) =>
+  const run = (action: () => Promise<ActionResult>) =>
     start(async () => {
-      const r = await fn();
-      setError(r.ok ? "" : r.error);
+      const result = await action();
+      setError(result.ok ? "" : result.error);
     });
   return { pending, error, run };
 }
@@ -22,10 +22,10 @@ export function StockInput({ table, id, stock }: { table: Table; id: string; sto
   const [value, setValue] = useState(stock === null ? "" : String(stock));
   const { pending, error, run } = useSave();
   const parsed = value.trim() === "" ? null : Math.max(0, Math.round(Number(value)));
-  const save = (v: number | null) => {
-    if (v === stock || Number.isNaN(v)) return;
-    setValue(v === null ? "" : String(v));
-    run(() => setStockAction(table, id, v));
+  const save = (value: number | null) => {
+    if (value === stock || Number.isNaN(value)) return;
+    setValue(value === null ? "" : String(value));
+    run(() => setStockAction(table, id, value));
   };
 
   return (
@@ -38,9 +38,9 @@ export function StockInput({ table, id, stock }: { table: Table; id: string; sto
           inputMode="numeric"
           placeholder="∞"
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(event) => setValue(event.target.value)}
           onBlur={() => save(parsed)}
-          onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+          onKeyDown={(event) => event.key === "Enter" && (event.currentTarget as HTMLInputElement).blur()}
           className={`w-20 rounded-xl border-[3px] px-2 py-1 font-bold tabular-nums outline-none focus:border-pink ${stock === 0 ? "border-pink bg-pink-soft" : "border-line bg-paper"} ${pending ? "opacity-50" : ""}`}
         />
         {stock !== 0 ? (
@@ -61,9 +61,9 @@ export function SaleInput({ id, pct }: { id: string; pct: number }) {
   const [value, setValue] = useState(String(pct));
   const { pending, error, run } = useSave();
   const save = () => {
-    const n = Math.min(90, Math.max(0, Math.round(Number(value) || 0)));
-    setValue(String(n));
-    if (n !== pct) run(() => setSaleAction(id, n));
+    const percent = Math.min(90, Math.max(0, Math.round(Number(value) || 0)));
+    setValue(String(percent));
+    if (percent !== pct) run(() => setSaleAction(id, percent));
   };
   return (
     <div className="grid gap-1">
@@ -74,9 +74,9 @@ export function SaleInput({ id, pct }: { id: string; pct: number }) {
           min={0}
           max={90}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(event) => setValue(event.target.value)}
           onBlur={save}
-          onKeyDown={(e) => e.key === "Enter" && (e.currentTarget as HTMLInputElement).blur()}
+          onKeyDown={(event) => event.key === "Enter" && (event.currentTarget as HTMLInputElement).blur()}
           className={`w-16 rounded-xl border-[3px] px-2 py-1 font-bold tabular-nums outline-none focus:border-pink ${pct > 0 ? "border-ink bg-sun" : "border-line bg-paper"} ${pending ? "opacity-50" : ""}`}
         />
         % off
@@ -90,7 +90,7 @@ export function VisibleSwitch({ table, id, visible }: { table: Table; id: string
   const { pending, error, run } = useSave();
   return (
     <div className="grid gap-1">
-      <Toggle label={visible ? "On site" : "Hidden"} checked={visible} disabled={pending} onChange={(v) => run(() => setVisibleAction(table, id, v))} />
+      <Toggle label={visible ? "On site" : "Hidden"} checked={visible} disabled={pending} onChange={(nextVisible) => run(() => setVisibleAction(table, id, nextVisible))} />
       {error && <span className="text-xs font-bold text-pink">{error}</span>}
     </div>
   );

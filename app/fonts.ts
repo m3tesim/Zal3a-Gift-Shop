@@ -7,4 +7,4 @@ const lalezar = Lalezar({ weight: "400", subsets: ["arabic", "latin"], variable:
 const baloo = Baloo_Bhaijaan_2({ subsets: ["arabic", "latin"], variable: "--font-baloo", display: "swap" });
 
 /** CSS variables for every font, set on <html> in both root layouts. */
-export const fontVars = [bagel, bricolage, figtree, lalezar, baloo].map((f) => f.variable).join(" ");
+export const fontVars = [bagel, bricolage, figtree, lalezar, baloo].map((font) => font.variable).join(" ");

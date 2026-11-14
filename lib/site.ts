@@ -23,6 +23,6 @@ export const DELIVERY: Record<Governorate, { fee: number; freeOver: number | nul
 };
 
 export function deliveryFee(gov: Governorate, subtotal: number) {
-  const d = DELIVERY[gov];
-  return d.freeOver !== null && subtotal >= d.freeOver ? 0 : d.fee;
+  const delivery = DELIVERY[gov];
+  return delivery.freeOver !== null && subtotal >= delivery.freeOver ? 0 : delivery.fee;
 }

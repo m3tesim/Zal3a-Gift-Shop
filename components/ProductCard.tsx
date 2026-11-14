@@ -12,18 +12,18 @@ import { TINT, defaultPlantsFor, linePrice, maxQty, plantsSummary, variantImage,
 
 const TILT = ["hover:-rotate-2", "hover:rotate-2", "hover:-rotate-1"];
 
-export function ProductCard({ product: p, index = 0, plants: forced }: { product: Product; index?: number; plants?: string[] }) {
-  const { locale, t } = useI18n();
+export function ProductCard({ product, index = 0, plants: forced }: { product: Product; index?: number; plants?: string[] }) {
+  const { locale, dictionary } = useI18n();
   const catalog = useCatalog();
   const addToBag = useAddToBag();
-  const tint = TINT[p.tint];
-  const name = p.name[locale];
-  const plants = forced ?? defaultPlantsFor(catalog, p);
-  const { full, unit } = linePrice(catalog, p, plants);
-  const out = maxQty(catalog, p, plants) === 0;
-  const href = `/${locale}/pots/${p.id}${forced ? `?plants=${plants.join(",")}` : ""}`;
-  const photo = (forced && variantImage(p, plants)) || p.image;
-  const rating = catalog.ratings[p.id];
+  const tint = TINT[product.tint];
+  const name = product.name[locale];
+  const plants = forced ?? defaultPlantsFor(catalog, product);
+  const { full, unit } = linePrice(catalog, product, plants);
+  const out = maxQty(catalog, product, plants) === 0;
+  const href = `/${locale}/pots/${product.id}${forced ? `?plants=${plants.join(",")}` : ""}`;
+  const photo = (forced && variantImage(product, plants)) || product.image;
+  const rating = catalog.ratings[product.id];
 
   return (
     <article
@@ -32,27 +32,27 @@ export function ProductCard({ product: p, index = 0, plants: forced }: { product
       <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] border-[3px] border-ink bg-paper">
         <Image
           src={photo}
-          alt={`${name}, ${p.kind[locale]}`}
+          alt={`${name}, ${product.kind[locale]}`}
           fill
           sizes="(min-width: 1024px) 360px, (min-width: 640px) 45vw, 90vw"
           className={`object-cover transition-transform duration-500 group-hover:scale-105 ${out ? "opacity-60 grayscale-[.6]" : ""}`}
-          style={{ objectPosition: p.pos }}
+          style={{ objectPosition: product.pos }}
         />
         <span
           className={`absolute start-3 top-3 -rotate-6 rounded-full border-2 border-ink px-3 py-1 text-xs font-extrabold ${out ? "bg-paper text-ink" : `${tint.solid} ${tint.text}`}`}
         >
-          {out ? t.shop.soldOut : p.badge[locale]}
+          {out ? dictionary.shop.soldOut : product.badge[locale]}
         </span>
-        {p.salePercent > 0 && !out && (
+        {product.salePercent > 0 && !out && (
           <span className="absolute end-3 top-3 rotate-6 rounded-full border-2 border-ink bg-sun px-3 py-1 text-xs font-extrabold">
-            {t.shop.off(p.salePercent)}
+            {dictionary.shop.off(product.salePercent)}
           </span>
         )}
         {!out && (
           <button
             type="button"
-            onClick={() => addToBag(p.id, plants)}
-            aria-label={t.shop.quickAdd(name)}
+            onClick={() => addToBag(product.id, plants)}
+            aria-label={dictionary.shop.quickAdd(name)}
             className="absolute end-3 bottom-3 z-[2] grid size-12 place-items-center rounded-full border-[3px] border-ink bg-pink text-white shadow-pop-sm transition-transform duration-200 hover:scale-110 hover:rotate-90"
           >
             <PlusIcon />
@@ -63,11 +63,11 @@ export function ProductCard({ product: p, index = 0, plants: forced }: { product
         <div className="min-w-0">
           <h3 className="font-head text-2xl font-extrabold">{name}</h3>
           <p className="text-sm text-ink-soft">
-            {p.kind[locale]} · {t.shop.with(plantsSummary(catalog, plants, locale))}
+            {product.kind[locale]} · {dictionary.shop.with(plantsSummary(catalog, plants, locale))}
           </p>
           {rating && (
             <p className="mt-1 flex items-center gap-1.5 text-sm font-bold">
-              <Stars value={rating.avg} size={16} label={t.reviews.stars(rating.avg)} />
+              <Stars value={rating.avg} size={16} label={dictionary.reviews.stars(rating.avg)} />
               <span className="text-ink-soft">({rating.count})</span>
             </p>
           )}
@@ -76,7 +76,7 @@ export function ProductCard({ product: p, index = 0, plants: forced }: { product
           <Price full={full} unit={unit} locale={locale} />
         </span>
       </div>
-      <Link href={href} aria-label={t.shop.view(name)} className="absolute inset-0 z-[1] rounded-[28px]" />
+      <Link href={href} aria-label={dictionary.shop.view(name)} className="absolute inset-0 z-[1] rounded-[28px]" />
     </article>
   );
 }

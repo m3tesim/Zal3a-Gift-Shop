@@ -9,7 +9,7 @@ export type Me = { name: string; email: string; phone: string; verified: boolean
 /** One cart line = a pot with a plant chosen for each of its slots. */
 export type CartLine = { id: string; plants: string[]; qty: number };
 
-const sameLine = (l: CartLine, id: string, plants: string[]) => l.id === id && comboKey(l.plants) === comboKey(plants);
+const sameLine = (line: CartLine, id: string, plants: string[]) => line.id === id && comboKey(line.plants) === comboKey(plants);
 
 type ShopState = {
   hydrated: boolean;
@@ -42,24 +42,24 @@ export const useShop = create<ShopState>()(
       me: undefined,
 
       add: (id, plants, qty = 1, max = MAX_QTY) =>
-        set((s) => {
-          const i = s.lines.findIndex((l) => sameLine(l, id, plants));
-          if (i === -1) return { lines: [...s.lines, { id, plants, qty: Math.min(qty, max) }] };
-          return { lines: s.lines.map((l, j) => (j === i ? { ...l, qty: Math.min(l.qty + qty, max) } : l)) };
+        set((state) => {
+          const existingIndex = state.lines.findIndex((line) => sameLine(line, id, plants));
+          if (existingIndex === -1) return { lines: [...state.lines, { id, plants, qty: Math.min(qty, max) }] };
+          return { lines: state.lines.map((line, lineIndex) => (lineIndex === existingIndex ? { ...line, qty: Math.min(line.qty + qty, max) } : line)) };
         }),
       setQty: (index, qty, max = MAX_QTY) =>
-        set((s) => ({
+        set((state) => ({
           lines:
             qty < 1
-              ? s.lines.filter((_, j) => j !== index)
-              : s.lines.map((l, j) => (j === index ? { ...l, qty: Math.min(qty, max) } : l)),
+              ? state.lines.filter((_line, lineIndex) => lineIndex !== index)
+              : state.lines.map((line, lineIndex) => (lineIndex === index ? { ...line, qty: Math.min(qty, max) } : line)),
         })),
-      remove: (index) => set((s) => ({ lines: s.lines.filter((_, j) => j !== index) })),
+      remove: (index) => set((state) => ({ lines: state.lines.filter((_line, lineIndex) => lineIndex !== index) })),
       prune: (check) =>
-        set((s) => {
-          const lines = s.lines.map((l) => ({ ...l, qty: Math.min(l.qty, check(l)) })).filter((l) => l.qty > 0);
-          const changed = lines.length !== s.lines.length || lines.some((l, i) => l.qty !== s.lines[i].qty);
-          return changed ? { lines } : s;
+        set((state) => {
+          const lines = state.lines.map((line) => ({ ...line, qty: Math.min(line.qty, check(line)) })).filter((line) => line.qty > 0);
+          const changed = lines.length !== state.lines.length || lines.some((line, lineIndex) => line.qty !== state.lines[lineIndex].qty);
+          return changed ? { lines } : state;
         }),
       placeOrder: (order) => set({ lastOrder: order, lines: [], cartOpen: false }),
       setCartOpen: (cartOpen) => set({ cartOpen }),
@@ -72,16 +72,16 @@ export const useShop = create<ShopState>()(
       version: 2, // v1 carts had a single plant per line; they're dropped on upgrade
       storage: createJSONStorage(() => window.localStorage), // throws on the server, which persist treats as "no storage"
       skipHydration: true, // rehydrated by I18nProvider after mount, so SSR markup matches
-      partialize: (s) => ({ lines: s.lines, lastOrder: s.lastOrder }),
+      partialize: (state) => ({ lines: state.lines, lastOrder: state.lastOrder }),
       migrate: () => ({ lines: [], lastOrder: null }),
       merge: (persisted, current) => {
-        const p = (persisted ?? {}) as Partial<ShopState>;
-        const lines = (p.lines ?? []).filter((l) => typeof l.id === "string" && Array.isArray(l.plants) && l.qty > 0);
-        return { ...current, lines, lastOrder: p.lastOrder?.items ? p.lastOrder : null };
+        const saved = (persisted ?? {}) as Partial<ShopState>;
+        const lines = (saved.lines ?? []).filter((line) => typeof line.id === "string" && Array.isArray(line.plants) && line.qty > 0);
+        return { ...current, lines, lastOrder: saved.lastOrder?.items ? saved.lastOrder : null };
       },
       onRehydrateStorage: () => () => useShop.setState({ hydrated: true }),
     },
   ),
 );
 
-export const cartCount = (lines: CartLine[]) => lines.reduce((n, l) => n + l.qty, 0);
+export const cartCount = (lines: CartLine[]) => lines.reduce((total, line) => total + line.qty, 0);

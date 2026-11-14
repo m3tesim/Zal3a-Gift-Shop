@@ -7,7 +7,7 @@ import { ArrowIcon, CheckIcon, FlowerShape, GiftIcon, StarShape } from "../icons
 const PERK_BG = ["bg-sun-soft -rotate-2", "bg-sky-soft rotate-1", "bg-lime-soft -rotate-1"];
 
 export function Hero({ locale, featured: duo, price }: { locale: Locale; featured?: Product; price: number }) {
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
 
   return (
     <section className="relative overflow-hidden">
@@ -15,32 +15,32 @@ export function Hero({ locale, featured: duo, price }: { locale: Locale; feature
         <div className="grid min-w-0 animate-rise gap-6">
           <span className="sticker inline-flex w-fit -rotate-2 items-center gap-2 bg-lilac-soft px-4 py-1.5 font-extrabold">
             <GiftIcon className="text-pink" />
-            {t.hero.sticker}
+            {dictionary.hero.sticker}
           </span>
           <h1 className="font-head text-[clamp(3rem,8.5vw,6.2rem)] font-extrabold">
-            {t.hero.titleA}{" "}
+            {dictionary.hero.titleA}{" "}
             <span className="inline-block -rotate-2 rounded-2xl border-[3px] border-ink bg-lime px-3 shadow-pop">
-              {t.hero.grow}
+              {dictionary.hero.grow}
             </span>{" "}
-            {t.hero.and}
+            {dictionary.hero.and}
             {locale === "ar" ? "" : " "}
-            <span className="squiggle text-pink">{t.hero.giggle}</span>
+            <span className="squiggle text-pink">{dictionary.hero.giggle}</span>
           </h1>
-          <p className="max-w-[40ch] text-lg text-ink-soft sm:text-xl">{t.hero.sub}</p>
+          <p className="max-w-[40ch] text-lg text-ink-soft sm:text-xl">{dictionary.hero.sub}</p>
           <div className="flex flex-wrap gap-3">
             <Link href={`/${locale}#matcher`} className="btn btn-pink">
-              {t.hero.ctaMatch}
+              {dictionary.hero.ctaMatch}
               <ArrowIcon className="rtl:-scale-x-100" />
             </Link>
             <Link href={`/${locale}#shop`} className="btn btn-white">
-              {t.hero.ctaShop}
+              {dictionary.hero.ctaShop}
             </Link>
           </div>
           <ul className="flex flex-wrap gap-2">
-            {t.hero.perks.map((perk, i) => (
+            {dictionary.hero.perks.map((perk, index) => (
               <li
                 key={perk}
-                className={`inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 text-sm font-bold ${PERK_BG[i]}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-3 py-1 text-sm font-bold ${PERK_BG[index]}`}
               >
                 <CheckIcon width={14} height={14} className="text-pink" />
                 {perk}
@@ -70,7 +70,7 @@ export function Hero({ locale, featured: duo, price }: { locale: Locale; feature
           <StarShape className="absolute end-[18%] -bottom-3 size-9 animate-float text-lilac [animation-delay:-1s] [--r:18deg]" />
 
           <span className="absolute end-[6%] top-[14%] animate-wiggle rounded-[18px_18px_18px_4px] border-[3px] border-ink bg-pink px-3 py-1 font-head text-xl text-white rtl:rounded-[18px_18px_4px_18px]">
-            {t.hero.hello}
+            {dictionary.hero.hello}
           </span>
 
           <Link
@@ -79,7 +79,7 @@ export function Hero({ locale, featured: duo, price }: { locale: Locale; feature
           >
             {duo.name[locale]}
             <small className="block font-semibold text-ink-soft">
-              {duo.slots.length === 2 ? t.hero.tagSmall(formatPrice(price, locale)) : formatPrice(price, locale)}
+              {duo.slots.length === 2 ? dictionary.hero.tagSmall(formatPrice(price, locale)) : formatPrice(price, locale)}
             </small>
           </Link>
 
@@ -92,7 +92,7 @@ export function Hero({ locale, featured: duo, price }: { locale: Locale; feature
                 <path id="circ" d="M50 50m-37 0a37 37 0 1 1 74 0a37 37 0 1 1-74 0" />
               </defs>
               <text className={`fill-white font-extrabold ${locale === "ar" ? "font-arbody text-[12px]" : "text-[10.5px] tracking-[0.16em] uppercase"}`}>
-                <textPath href="#circ">{t.hero.spin}</textPath>
+                <textPath href="#circ">{dictionary.hero.spin}</textPath>
               </text>
             </svg>
             <span lang="ar" className="font-ar text-2xl">

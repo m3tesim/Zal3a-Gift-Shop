@@ -21,18 +21,18 @@ export type Campaign = {
 
 type Row = Record<string, unknown>;
 const EMPTY: L = { en: "", ar: "" };
-const toCampaign = (r: Row): Campaign => ({
-  id: r.id as number,
-  subject: json(r.subject, EMPTY),
-  body: json(r.body, EMPTY),
-  ctaLabel: json(r.cta_label, EMPTY),
-  ctaUrl: r.cta_url as string,
-  image: (r.image as string) ?? null,
-  status: r.status as Campaign["status"],
-  recipients: r.recipients as number,
-  sent: r.sent as number,
-  failed: r.failed as number,
-  createdAt: r.created_at as string,
+const toCampaign = (row: Row): Campaign => ({
+  id: row.id as number,
+  subject: json(row.subject, EMPTY),
+  body: json(row.body, EMPTY),
+  ctaLabel: json(row.cta_label, EMPTY),
+  ctaUrl: row.cta_url as string,
+  image: (row.image as string) ?? null,
+  status: row.status as Campaign["status"],
+  recipients: row.recipients as number,
+  sent: row.sent as number,
+  failed: row.failed as number,
+  createdAt: row.created_at as string,
 });
 
 export type CampaignInput = Pick<Campaign, "subject" | "body" | "ctaLabel" | "ctaUrl" | "image">;
@@ -40,39 +40,39 @@ export type CampaignInput = Pick<Campaign, "subject" | "body" | "ctaLabel" | "ct
 /** Absolute URLs for links and images inside emails. */
 export const absolute = (url: string) => (/^https?:\/\//.test(url) ? url : `${siteUrl()}${url.startsWith("/") ? "" : "/"}${url}`);
 
-export function renderOffer(c: CampaignInput, locale: "en" | "ar", unsubscribeUrl: string) {
+export function renderOffer(campaign: CampaignInput, locale: "en" | "ar", unsubscribeUrl: string) {
   return offerEmail(
     locale,
     {
-      title: c.subject[locale],
-      body: c.body[locale],
-      ctaLabel: c.ctaLabel[locale],
-      ctaUrl: c.ctaUrl ? absolute(c.ctaUrl.replace("{lang}", locale)) : "",
-      image: c.image ? absolute(c.image) : null,
+      title: campaign.subject[locale],
+      body: campaign.body[locale],
+      ctaLabel: campaign.ctaLabel[locale],
+      ctaUrl: campaign.ctaUrl ? absolute(campaign.ctaUrl.replace("{lang}", locale)) : "",
+      image: campaign.image ? absolute(campaign.image) : null,
     },
     unsubscribeUrl,
   );
 }
 
-export function createCampaign(c: CampaignInput) {
+export function createCampaign(campaign: CampaignInput) {
   const audience = marketingAudience().length;
   const { lastInsertRowid } = getDb()
     .prepare("INSERT INTO campaigns (subject, body, cta_label, cta_url, image, recipients) VALUES (?, ?, ?, ?, ?, ?)")
-    .run(JSON.stringify(c.subject), JSON.stringify(c.body), JSON.stringify(c.ctaLabel), c.ctaUrl, c.image, audience);
+    .run(JSON.stringify(campaign.subject), JSON.stringify(campaign.body), JSON.stringify(campaign.ctaLabel), campaign.ctaUrl, campaign.image, audience);
   return Number(lastInsertRowid);
 }
 
 /** Sends one by one (kind to the mail server) and keeps the counters up to date for the admin page. */
 export async function runCampaign(id: number) {
   const db = getDb();
-  const c = toCampaign(db.prepare("SELECT * FROM campaigns WHERE id = ?").get(id) as Row);
+  const campaign = toCampaign(db.prepare("SELECT * FROM campaigns WHERE id = ?").get(id) as Row);
   const bump = (col: "sent" | "failed") => db.prepare(`UPDATE campaigns SET ${col} = ${col} + 1 WHERE id = ?`).run(id);
   for (const customer of marketingAudience()) {
     const unsubscribe = `${siteUrl()}/${customer.locale}/unsubscribe?t=${customer.unsubscribeToken}`;
     const status = await sendEmail({
       to: customer.email,
-      subject: c.subject[customer.locale],
-      html: renderOffer(c, customer.locale, unsubscribe),
+      subject: campaign.subject[customer.locale],
+      html: renderOffer(campaign, customer.locale, unsubscribe),
       kind: "offer",
       campaignId: id,
       unsubscribeUrl: unsubscribe,

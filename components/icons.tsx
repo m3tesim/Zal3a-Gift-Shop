@@ -6,73 +6,73 @@ type P = React.SVGProps<SVGSVGElement>;
 
 const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 2.5, strokeLinecap: "round", strokeLinejoin: "round" } as const;
 
-export const ArrowIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} {...p}>
+export const ArrowIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} {...props}>
     <path d="M5 12h14M13 6l6 6-6 6" />
   </svg>
 );
-export const BackIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...stroke} {...p}>
+export const BackIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...stroke} {...props}>
     <path d="M19 12H5M11 6l-6 6 6 6" />
   </svg>
 );
-export const PlusIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} strokeWidth={3} {...p}>
+export const PlusIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} strokeWidth={3} {...props}>
     <path d="M12 5v14M5 12h14" />
   </svg>
 );
-export const MinusIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} strokeWidth={3} {...p}>
+export const MinusIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} strokeWidth={3} {...props}>
     <path d="M5 12h14" />
   </svg>
 );
-export const CloseIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...stroke} strokeWidth={3} {...p}>
+export const CloseIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...stroke} strokeWidth={3} {...props}>
     <path d="M6 6l12 12M18 6 6 18" />
   </svg>
 );
-export const BagIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...p}>
+export const BagIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...props}>
     <path d="M5 8h14l-1 12H6z" />
     <path d="M9 8a3 3 0 0 1 6 0" />
   </svg>
 );
-export const UserIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...p}>
+export const UserIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...props}>
     <circle cx="12" cy="8.5" r="4" />
     <path d="M4.5 20.5c1.2-4 4-6 7.5-6s6.3 2 7.5 6" />
   </svg>
 );
-export const StarIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...p}>
+export const StarIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...props}>
     <path d="M12 2.8l2.8 6 6.5.7-4.9 4.4 1.4 6.4L12 17l-5.8 3.3 1.4-6.4L2.7 9.5l6.5-.7z" fill="currentColor" stroke="var(--color-ink)" strokeWidth="1.6" strokeLinejoin="round" />
   </svg>
 );
-export const ShuffleIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} {...p}>
+export const ShuffleIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke} {...props}>
     <path d="M3 7h3c4 0 6 10 10 10h5M18 14l3 3-3 3M3 17h3c1.5 0 2.7-1.4 3.7-3M14.3 10c1-1.6 2.2-3 3.7-3h3M18 4l3 3-3 3" />
   </svg>
 );
-export const CheckIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...stroke} strokeWidth={3.5} {...p}>
+export const CheckIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" {...stroke} strokeWidth={3.5} {...props}>
     <path d="M5 12.5l4.5 4.5L19 7.5" />
   </svg>
 );
-export const GiftIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...p}>
+export const GiftIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...props}>
     <rect x="3.5" y="8" width="17" height="5" rx="1" />
     <path d="M5 13v7h14v-7M12 8v12M12 8c-1.5-3-5-4-5.5-2S9 8 12 8zM12 8c1.5-3 5-4 5.5-2S15 8 12 8z" />
   </svg>
 );
-export const TruckIcon = (p: P) => (
-  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...p}>
+export const TruckIcon = (props: P) => (
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" {...stroke} {...props}>
     <path d="M2.5 6h11v10h-11zM13.5 9.5h4l3 3.5v3h-7" />
     <circle cx="6.5" cy="17.5" r="2" fill="var(--color-paper)" />
     <circle cx="17" cy="17.5" r="2" fill="var(--color-paper)" />
   </svg>
 );
-export const StarShape = (p: P) => (
-  <svg viewBox="0 0 40 40" aria-hidden="true" {...p}>
+export const StarShape = (props: P) => (
+  <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
     <path
       d="M20 3l4.6 10.6L36 15l-8.6 7.6L30 34l-10-6-10 6 2.6-11.4L4 15l11.4-1.4z"
       fill="currentColor"
@@ -82,8 +82,8 @@ export const StarShape = (p: P) => (
     />
   </svg>
 );
-export const FlowerShape = (p: P) => (
-  <svg viewBox="0 0 40 40" aria-hidden="true" {...p}>
+export const FlowerShape = (props: P) => (
+  <svg viewBox="0 0 40 40" aria-hidden="true" {...props}>
     <g fill="currentColor" stroke="var(--color-ink)" strokeWidth="2.5">
       <circle cx="20" cy="9" r="7" />
       <circle cx="31" cy="20" r="7" />
@@ -95,28 +95,28 @@ export const FlowerShape = (p: P) => (
 );
 
 /* Little cartoon plants-in-pots, drawn from shared data in lib/plant-art.ts */
-export function PlantIcon({ icon, ...p }: { icon: PlantIconKey } & P) {
-  const color = (t: Tok | "none") => (t === "none" ? "none" : `var(--color-${t})`);
+export function PlantIcon({ icon, ...svgProps }: { icon: PlantIconKey } & P) {
+  const color = (token: Tok | "none") => (token === "none" ? "none" : `var(--color-${token})`);
   return (
-    <svg viewBox="0 0 64 64" aria-hidden="true" {...p}>
-      {PLANT_ART[icon].map((s, i) => {
+    <svg viewBox="0 0 64 64" aria-hidden="true" {...svgProps}>
+      {PLANT_ART[icon].map((shape, index) => {
         const attrs = {
-          fill: color(s.fill),
-          stroke: s.stroke === null ? undefined : color(s.stroke ?? "ink"),
-          strokeWidth: s.stroke === null ? undefined : (s.width ?? 2.5),
+          fill: color(shape.fill),
+          stroke: shape.stroke === null ? undefined : color(shape.stroke ?? "ink"),
+          strokeWidth: shape.stroke === null ? undefined : (shape.width ?? 2.5),
           strokeLinejoin: "round" as const,
-          strokeLinecap: s.cap ? ("round" as const) : undefined,
-          opacity: s.opacity,
+          strokeLinecap: shape.cap ? ("round" as const) : undefined,
+          opacity: shape.opacity,
         };
-        return "path" in s ? <path key={i} d={s.path} {...attrs} /> : <circle key={i} cx={s.circle[0]} cy={s.circle[1]} r={s.circle[2]} {...attrs} />;
+        return "path" in shape ? <path key={index} d={shape.path} {...attrs} /> : <circle key={index} cx={shape.circle[0]} cy={shape.circle[1]} r={shape.circle[2]} {...attrs} />;
       })}
     </svg>
   );
 }
 
-export function SocialIcon({ id, ...p }: { id: SocialId } & P) {
+export function SocialIcon({ id, ...svgProps }: { id: SocialId } & P) {
   return (
-    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" {...p}>
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" {...svgProps}>
       {id === "instagram" && (
         <g fill="none" stroke="currentColor" strokeWidth="2">
           <rect x="3" y="3" width="18" height="18" rx="5.5" />

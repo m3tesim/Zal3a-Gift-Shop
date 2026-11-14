@@ -9,27 +9,27 @@ import { TINT, TINTS, applySale, type L, type Plant, type Product, type Tag } fr
 import { formatPrice } from "@/lib/i18n";
 
 const blank: L = { en: "", ar: "" };
-export const toSlug = (s: string) =>
-  s
+export const toSlug = (text: string) =>
+  text
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
 
 /** Starting values for a new single pot, combo (2) or triple (3). */
-function newPot(n: number, firstPlant: string): PotInput {
-  const set = n > 1;
+function newPot(potCount: number, firstPlant: string): PotInput {
+  const set = potCount > 1;
   return {
     isNew: true,
     id: "",
     name: blank,
-    kind: set ? { en: `Set of ${n}`, ar: `طقم ${n}` } : blank,
+    kind: set ? { en: `Set of ${potCount}`, ar: `طقم ${potCount}` } : blank,
     desc: blank,
-    badge: n === 2 ? { en: "Combo deal", ar: "عرض كومبو" } : n === 3 ? { en: "Triple deal", ar: "عرض التلاتة" } : blank,
+    badge: potCount === 2 ? { en: "Combo deal", ar: "عرض كومبو" } : potCount === 3 ? { en: "Triple deal", ar: "عرض التلاتة" } : blank,
     styled: blank,
     price: 0, salePercent: 0, stock: 10,
-    slots: set ? Array.from({ length: n }, (_, i) => ({ en: `Pot ${i + 1}`, ar: `القصرية ${i + 1}` })) : [{ en: "Pot", ar: "القصرية" }],
-    defaultPlants: Array(n).fill(firstPlant),
+    slots: set ? Array.from({ length: potCount }, (_slot, index) => ({ en: `Pot ${index + 1}`, ar: `القصرية ${index + 1}` })) : [{ en: "Pot", ar: "القصرية" }],
+    defaultPlants: Array(potCount).fill(firstPlant),
     tint: "pink", image: "", pos: "50% 50%",
     vibes: [], recipients: [],
     specs: [
@@ -38,8 +38,8 @@ function newPot(n: number, firstPlant: string): PotInput {
         ? [{
             label: { en: "In the box", ar: "في العلبة" },
             value: {
-              en: `${n} pots, ${n} plants, care card`,
-              ar: n === 2 ? "قصريتين، زرعتين، كارت عناية" : `${n} قصاري، ${n} زرعات، كارت عناية`,
+              en: `${potCount} pots, ${potCount} plants, care card`,
+              ar: potCount === 2 ? "قصريتين، زرعتين، كارت عناية" : `${potCount} قصاري، ${potCount} زرعات، كارت عناية`,
             },
           }]
         : []),
@@ -48,10 +48,10 @@ function newPot(n: number, firstPlant: string): PotInput {
   };
 }
 
-function initial(p: Product | null, plants: Plant[], potsInSet: number): PotInput {
-  const firstPlant = plants.find((x) => !x.potOnly)?.id ?? plants[0]?.id ?? "";
-  if (!p) return newPot(potsInSet, firstPlant);
-  const { variants: _v, sort: _s, ...rest } = p;
+function initial(product: Product | null, plants: Plant[], potsInSet: number): PotInput {
+  const firstPlant = plants.find((plant) => !plant.potOnly)?.id ?? plants[0]?.id ?? "";
+  if (!product) return newPot(potsInSet, firstPlant);
+  const { variants: _variants, sort: _sort, ...rest } = product;
   return { ...rest, isNew: false };
 }
 
@@ -67,23 +67,23 @@ export function PotForm({
   potsInSet?: number;
 }) {
   const router = useRouter();
-  const [f, setF] = useState<PotInput>(() => initial(product, plants, potsInSet));
+  const [form, setForm] = useState<PotInput>(() => initial(product, plants, potsInSet));
   const [slugTouched, setSlugTouched] = useState(!!product);
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
-  const set = <K extends keyof PotInput>(k: K, v: PotInput[K]) => setF((s) => ({ ...s, [k]: v }));
+  const set = <K extends keyof PotInput>(key: K, value: PotInput[K]) => setForm((previous) => ({ ...previous, [key]: value }));
 
-  const [x, y] = f.pos.split(" ").map((v) => parseInt(v));
-  const plantPrice = (id: string) => plants.find((p) => p.id === id)?.price ?? 0;
-  const full = f.price + f.defaultPlants.reduce((n, id) => n + plantPrice(id), 0);
-  const slotsChanged = !!product && product.slots.length !== f.slots.length;
+  const [posX, posY] = form.pos.split(" ").map((part) => parseInt(part));
+  const plantPrice = (id: string) => plants.find((plant) => plant.id === id)?.price ?? 0;
+  const full = form.price + form.defaultPlants.reduce((total, id) => total + plantPrice(id), 0);
+  const slotsChanged = !!product && product.slots.length !== form.slots.length;
 
   function save() {
     setMsg(null);
     start(async () => {
-      const r = await savePotAction(f);
-      if (!r.ok) return setMsg({ kind: "error", text: r.error });
-      if (f.isNew) router.push(`/admin/pots/${r.id}?created=1`);
+      const result = await savePotAction(form);
+      if (!result.ok) return setMsg({ kind: "error", text: result.error });
+      if (form.isNew) router.push(`/admin/pots/${result.id}?created=1`);
       else setMsg({ kind: "ok", text: "Saved! The shop is updated." });
     });
   }
@@ -91,16 +91,16 @@ export function PotForm({
   function remove() {
     if (!product || !confirm(`Delete “${product.name.en}” and all its photos? This can't be undone.`)) return;
     start(async () => {
-      const r = await deletePotAction(product.id);
-      if (r.ok) router.push("/admin/pots");
-      else setMsg({ kind: "error", text: r.error });
+      const result = await deletePotAction(product.id);
+      if (result.ok) router.push("/admin/pots");
+      else setMsg({ kind: "error", text: result.error });
     });
   }
 
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
+      onSubmit={(event) => {
+        event.preventDefault();
         save();
       }}
       className="grid gap-5"
@@ -109,58 +109,58 @@ export function PotForm({
         <LInput
           label="Name"
           required
-          value={f.name}
-          onChange={(v) => {
-            setF((s) => ({ ...s, name: v, id: slugTouched ? s.id : toSlug(v.en) }));
+          value={form.name}
+          onChange={(name) => {
+            setForm((previous) => ({ ...previous, name, id: slugTouched ? previous.id : toSlug(name.en) }));
           }}
         />
-        <Labeled label="Link name" hint={f.isNew ? `Shop link: /en/pots/${f.id || "…"}  (can't be changed later)` : `Shop link: /en/pots/${f.id}`}>
+        <Labeled label="Link name" hint={form.isNew ? `Shop link: /en/pots/${form.id || "…"}  (can't be changed later)` : `Shop link: /en/pots/${form.id}`}>
           <TextInput
-            value={f.id}
-            disabled={!f.isNew}
-            onChange={(e) => {
+            value={form.id}
+            disabled={!form.isNew}
+            onChange={(event) => {
               setSlugTouched(true);
-              set("id", toSlug(e.target.value));
+              set("id", toSlug(event.target.value));
             }}
           />
         </Labeled>
-        <LInput label="Type of pot" required hint="Shown under the name, e.g. “Cat pot” or “Cat pots · set of 2”" value={f.kind} onChange={(v) => set("kind", v)} />
-        <LInput label="Badge" hint="Little sticker on the photo, e.g. “New” or “Best seller”. Leave empty for none." value={f.badge} onChange={(v) => set("badge", v)} />
-        <LInput label="Description" required multiline value={f.desc} onChange={(v) => set("desc", v)} />
+        <LInput label="Type of pot" required hint="Shown under the name, e.g. “Cat pot” or “Cat pots · set of 2”" value={form.kind} onChange={(value) => set("kind", value)} />
+        <LInput label="Badge" hint="Little sticker on the photo, e.g. “New” or “Best seller”. Leave empty for none." value={form.badge} onChange={(value) => set("badge", value)} />
+        <LInput label="Description" required multiline value={form.desc} onChange={(value) => set("desc", value)} />
       </Panel>
 
       <Panel title="Main photo" sub="Used on cards and as the product photo when a plant combo has no photo of its own.">
         <div className="grid gap-5 sm:grid-cols-[220px_1fr]">
-          <ImageUpload value={f.image || null} onChange={(url) => set("image", url ?? "")} label="Upload photo" emptyText="Drop a photo here" />
+          <ImageUpload value={form.image || null} onChange={(url) => set("image", url ?? "")} label="Upload photo" emptyText="Drop a photo here" />
           <div className="grid content-start gap-4">
             <div className="grid gap-2">
               <span className="text-sm font-bold">Focus point (how the photo is cropped on cards)</span>
               <label className="flex items-center gap-3 text-sm">
                 ↔
-                <input type="range" min={0} max={100} value={x} onChange={(e) => set("pos", `${e.target.value}% ${y}%`)} className="flex-1 accent-pink" />
+                <input type="range" min={0} max={100} value={posX} onChange={(event) => set("pos", `${event.target.value}% ${posY}%`)} className="flex-1 accent-pink" />
               </label>
               <label className="flex items-center gap-3 text-sm">
                 ↕
-                <input type="range" min={0} max={100} value={y} onChange={(e) => set("pos", `${x}% ${e.target.value}%`)} className="flex-1 accent-pink" />
+                <input type="range" min={0} max={100} value={posY} onChange={(event) => set("pos", `${posX}% ${event.target.value}%`)} className="flex-1 accent-pink" />
               </label>
-              {f.image && (
+              {form.image && (
                 <div className="relative aspect-[4/5] w-28 overflow-hidden rounded-xl border-2 border-ink">
-                  <Image src={f.image} alt="Card preview" fill sizes="112px" className="object-cover" style={{ objectPosition: f.pos }} />
+                  <Image src={form.image} alt="Card preview" fill sizes="112px" className="object-cover" style={{ objectPosition: form.pos }} />
                 </div>
               )}
             </div>
-            <LInput label="What's in the photo" hint="Shown as “Photo shows the pot styled with …”" value={f.styled} onChange={(v) => set("styled", v)} />
+            <LInput label="What's in the photo" hint="Shown as “Photo shows the pot styled with …”" value={form.styled} onChange={(value) => set("styled", value)} />
             <fieldset className="grid gap-2">
               <legend className="mb-2 text-sm font-bold">Card colour</legend>
               <div className="flex gap-2">
-                {TINTS.map((t) => (
+                {TINTS.map((tint) => (
                   <button
-                    key={t}
+                    key={tint}
                     type="button"
-                    aria-label={t}
-                    aria-pressed={f.tint === t}
-                    onClick={() => set("tint", t)}
-                    className={`size-9 rounded-full border-[3px] ${TINT[t].solid} ${f.tint === t ? "border-ink ring-4 ring-pink-soft" : "border-paper"}`}
+                    aria-label={tint}
+                    aria-pressed={form.tint === tint}
+                    onClick={() => set("tint", tint)}
+                    className={`size-9 rounded-full border-[3px] ${TINT[tint].solid} ${form.tint === tint ? "border-ink ring-4 ring-pink-soft" : "border-paper"}`}
                   />
                 ))}
               </div>
@@ -172,40 +172,40 @@ export function PotForm({
       <Panel title="Price & stock">
         <div className="grid gap-4 sm:grid-cols-3">
           <Labeled
-            label={f.slots.length > 1 ? `Price for all ${f.slots.length} pots (EGP)` : "Pot price (EGP)"}
-            hint={f.slots.length > 1 ? "For the whole set, pots only. Each pot's plant price is added on top." : "For the pot only. The plant price is added on top."}
+            label={form.slots.length > 1 ? `Price for all ${form.slots.length} pots (EGP)` : "Pot price (EGP)"}
+            hint={form.slots.length > 1 ? "For the whole set, pots only. Each pot's plant price is added on top." : "For the pot only. The plant price is added on top."}
           >
-            <NumberInput value={f.price} onChange={(n) => set("price", n ?? 0)} />
+            <NumberInput value={form.price} onChange={(price) => set("price", price ?? 0)} />
           </Labeled>
           <Labeled label="Sale (% off)" hint="0 = no sale. Applies to pot + plants.">
-            <NumberInput value={f.salePercent} max={90} onChange={(n) => set("salePercent", Math.min(90, n ?? 0))} />
+            <NumberInput value={form.salePercent} max={90} onChange={(percent) => set("salePercent", Math.min(90, percent ?? 0))} />
           </Labeled>
           <div className="grid content-start gap-2">
-            <Toggle label="Track stock" checked={f.stock !== null} onChange={(v) => set("stock", v ? 10 : null)} />
-            {f.stock !== null && (
+            <Toggle label="Track stock" checked={form.stock !== null} onChange={(tracked) => set("stock", tracked ? 10 : null)} />
+            {form.stock !== null && (
               <Labeled label="In stock" hint="0 = sold out">
-                <NumberInput value={f.stock} onChange={(n) => set("stock", n ?? 0)} />
+                <NumberInput value={form.stock} onChange={(stock) => set("stock", stock ?? 0)} />
               </Labeled>
             )}
           </div>
         </div>
         <p className="rounded-2xl bg-cream px-4 py-2 font-bold">
           Customers see:{" "}
-          {f.salePercent > 0 && <s className="me-1 text-ink-soft">{formatPrice(full, "en")}</s>}
-          {formatPrice(applySale(full, f.salePercent), "en")} with the default plants
+          {form.salePercent > 0 && <s className="me-1 text-ink-soft">{formatPrice(full, "en")}</s>}
+          {formatPrice(applySale(full, form.salePercent), "en")} with the default plants
         </p>
       </Panel>
 
       <Panel title="Pots in this set" sub="One row per pot. Customers pick a plant for each one, like the two cats in the Gossip Duo.">
         <ol className="grid gap-4">
-          {f.slots.map((slot, i) => (
-            <li key={i} className="grid gap-3 rounded-2xl border-2 border-line p-3">
+          {form.slots.map((slot, slotIndex) => (
+            <li key={slotIndex} className="grid gap-3 rounded-2xl border-2 border-line p-3">
               <div className="flex items-center justify-between">
-                <b>Pot {i + 1}</b>
-                {f.slots.length > 1 && (
+                <b>Pot {slotIndex + 1}</b>
+                {form.slots.length > 1 && (
                   <button
                     type="button"
-                    onClick={() => setF((s) => ({ ...s, slots: s.slots.filter((_, j) => j !== i), defaultPlants: s.defaultPlants.filter((_, j) => j !== i) }))}
+                    onClick={() => setForm((previous) => ({ ...previous, slots: previous.slots.filter((_slot, index) => index !== slotIndex), defaultPlants: previous.defaultPlants.filter((_plant, index) => index !== slotIndex) }))}
                     className="text-sm font-bold text-ink-soft underline hover:text-pink"
                   >
                     Remove
@@ -217,16 +217,16 @@ export function PotForm({
                 required
                 hint="Used in “Who lives in …?”, e.g. “the laughing cat”"
                 value={slot}
-                onChange={(v) => setF((s) => ({ ...s, slots: s.slots.map((x, j) => (j === i ? v : x)) }))}
+                onChange={(label) => setForm((previous) => ({ ...previous, slots: previous.slots.map((existing, index) => (index === slotIndex ? label : existing)) }))}
               />
               <Labeled label="Default plant">
                 <Select
-                  value={f.defaultPlants[i]}
-                  onChange={(e) => setF((s) => ({ ...s, defaultPlants: s.defaultPlants.map((x, j) => (j === i ? e.target.value : x)) }))}
+                  value={form.defaultPlants[slotIndex]}
+                  onChange={(event) => setForm((previous) => ({ ...previous, defaultPlants: previous.defaultPlants.map((existing, index) => (index === slotIndex ? event.target.value : existing)) }))}
                 >
-                  {plants.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name.en} (+{formatPrice(p.price, "en")}){p.visible ? "" : " · hidden"}
+                  {plants.map((plant) => (
+                    <option key={plant.id} value={plant.id}>
+                      {plant.name.en} (+{formatPrice(plant.price, "en")}){plant.visible ? "" : " · hidden"}
                     </option>
                   ))}
                 </Select>
@@ -234,10 +234,10 @@ export function PotForm({
             </li>
           ))}
         </ol>
-        {f.slots.length < 4 && (
+        {form.slots.length < 4 && (
           <button
             type="button"
-            onClick={() => setF((s) => ({ ...s, slots: [...s.slots, { en: `Pot ${s.slots.length + 1}`, ar: `القصرية ${s.slots.length + 1}` }], defaultPlants: [...s.defaultPlants, s.defaultPlants[0]] }))}
+            onClick={() => setForm((previous) => ({ ...previous, slots: [...previous.slots, { en: `Pot ${previous.slots.length + 1}`, ar: `القصرية ${previous.slots.length + 1}` }], defaultPlants: [...previous.defaultPlants, previous.defaultPlants[0]] }))}
             className="w-fit rounded-full border-2 border-ink bg-lime-soft px-4 py-1.5 font-bold hover:bg-lime"
           >
             + Add another pot to the set
@@ -249,28 +249,28 @@ export function PotForm({
       <Panel title="Gift matchmaker" sub="The matchmaker on the home page ranks pots by these tags: vibe first, then who it's for.">
         <Chips
           label="Vibe"
-          options={tags.filter((t) => t.kind === "vibe").map((t) => ({ key: t.id, label: `${t.emoji} ${t.label.en}` }))}
-          value={f.vibes}
-          onChange={(v) => set("vibes", v)}
+          options={tags.filter((tag) => tag.kind === "vibe").map((tag) => ({ key: tag.id, label: `${tag.emoji} ${tag.label.en}` }))}
+          value={form.vibes}
+          onChange={(vibes) => set("vibes", vibes)}
         />
         <Chips
           label="Best for"
-          options={tags.filter((t) => t.kind === "who").map((t) => ({ key: t.id, label: `${t.emoji} ${t.label.en}` }))}
-          value={f.recipients}
-          onChange={(v) => set("recipients", v)}
+          options={tags.filter((tag) => tag.kind === "who").map((tag) => ({ key: tag.id, label: `${tag.emoji} ${tag.label.en}` }))}
+          value={form.recipients}
+          onChange={(recipients) => set("recipients", recipients)}
         />
         <p className="text-sm text-ink-soft">Add more options under Tags &amp; care.</p>
       </Panel>
 
       <Panel title="Plant tag details" sub="The spec list on the product page. Rows with no label are skipped.">
         <ul className="grid gap-3">
-          {f.specs.map((s, i) => (
-            <li key={i} className="grid gap-2 rounded-2xl border-2 border-line p-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-              <LInput label="Label" value={s.label} onChange={(v) => setF((st) => ({ ...st, specs: st.specs.map((x, j) => (j === i ? { ...x, label: v } : x)) }))} />
-              <LInput label="Value" value={s.value} onChange={(v) => setF((st) => ({ ...st, specs: st.specs.map((x, j) => (j === i ? { ...x, value: v } : x)) }))} />
+          {form.specs.map((spec, specIndex) => (
+            <li key={specIndex} className="grid gap-2 rounded-2xl border-2 border-line p-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+              <LInput label="Label" value={spec.label} onChange={(label) => setForm((previous) => ({ ...previous, specs: previous.specs.map((existing, index) => (index === specIndex ? { ...existing, label } : existing)) }))} />
+              <LInput label="Value" value={spec.value} onChange={(specValue) => setForm((previous) => ({ ...previous, specs: previous.specs.map((existing, index) => (index === specIndex ? { ...existing, value: specValue } : existing)) }))} />
               <button
                 type="button"
-                onClick={() => setF((st) => ({ ...st, specs: st.specs.filter((_, j) => j !== i) }))}
+                onClick={() => setForm((previous) => ({ ...previous, specs: previous.specs.filter((_spec, index) => index !== specIndex) }))}
                 className="h-fit rounded-full border-2 border-line px-3 py-1 text-sm font-bold hover:border-pink hover:text-pink"
               >
                 Remove
@@ -280,7 +280,7 @@ export function PotForm({
         </ul>
         <button
           type="button"
-          onClick={() => setF((st) => ({ ...st, specs: [...st.specs, { label: blank, value: blank }] }))}
+          onClick={() => setForm((previous) => ({ ...previous, specs: [...previous.specs, { label: blank, value: blank }] }))}
           className="w-fit rounded-full border-2 border-ink bg-lime-soft px-4 py-1.5 font-bold hover:bg-lime"
         >
           + Add row
@@ -289,14 +289,14 @@ export function PotForm({
 
       <Panel title="On the website">
         <div className="flex flex-wrap gap-6">
-          <Toggle label="Show on the shop" checked={f.visible} onChange={(v) => set("visible", v)} />
-          <Toggle label="Feature in the home page hero" checked={f.featured} onChange={(v) => set("featured", v)} />
+          <Toggle label="Show on the shop" checked={form.visible} onChange={(checked) => set("visible", checked)} />
+          <Toggle label="Feature in the home page hero" checked={form.featured} onChange={(checked) => set("featured", checked)} />
         </div>
       </Panel>
 
       <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-3 rounded-3xl border-[3px] border-ink bg-sun p-3 shadow-pop">
         <button type="submit" disabled={pending} className="btn btn-pink">
-          {pending ? "Saving…" : f.isNew ? "Create pot" : "Save changes"}
+          {pending ? "Saving…" : form.isNew ? "Create pot" : "Save changes"}
         </button>
         {msg && <Notice kind={msg.kind}>{msg.text}</Notice>}
         {product && (

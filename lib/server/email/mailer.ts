@@ -38,7 +38,7 @@ const toText = (html: string) =>
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 
-export async function sendEmail(m: {
+export async function sendEmail(message: {
   to: string;
   subject: string;
   html: string;
@@ -53,22 +53,22 @@ export async function sendEmail(m: {
     try {
       await transporter().sendMail({
         from: process.env.MAIL_FROM,
-        to: m.to,
-        subject: m.subject,
-        html: m.html,
-        text: toText(m.html),
-        headers: m.unsubscribeUrl ? { "List-Unsubscribe": `<${m.unsubscribeUrl}>` } : undefined,
+        to: message.to,
+        subject: message.subject,
+        html: message.html,
+        text: toText(message.html),
+        headers: message.unsubscribeUrl ? { "List-Unsubscribe": `<${message.unsubscribeUrl}>` } : undefined,
       });
       status = "sent";
-    } catch (e) {
+    } catch (caught) {
       status = "failed";
-      error = e instanceof Error ? e.message : String(e);
-      console.error("Email failed", m.to, error);
+      error = caught instanceof Error ? caught.message : String(caught);
+      console.error("Email failed", message.to, error);
     }
   }
   getDb()
     .prepare("INSERT INTO emails (to_addr, subject, html, kind, status, error, order_number, campaign_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-    .run(m.to, m.subject, m.html, m.kind, status, error, m.orderNumber ?? null, m.campaignId ?? null);
+    .run(message.to, message.subject, message.html, message.kind, status, error, message.orderNumber ?? null, message.campaignId ?? null);
   return status;
 }
 
@@ -88,7 +88,7 @@ export function listEmails({ orderNumber, limit = 100 }: { orderNumber?: string;
   const rows = orderNumber
     ? getDb().prepare(`SELECT ${cols} FROM emails WHERE order_number = ? ORDER BY id DESC`).all(orderNumber)
     : getDb().prepare(`SELECT ${cols} FROM emails ORDER BY id DESC LIMIT ?`).all(limit);
-  return (rows as unknown as EmailRow[]).map((r) => ({ ...r }));
+  return (rows as unknown as EmailRow[]).map((row) => ({ ...row }));
 }
 
 export function emailHtml(id: number) {

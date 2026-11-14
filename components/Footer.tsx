@@ -6,7 +6,7 @@ import { SocialIcon } from "./icons";
 import { LangSwitch } from "./LangSwitch";
 
 export function Footer({ locale }: { locale: Locale }) {
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
   return (
     <footer className="relative mt-20">
       {/* wavy top edge */}
@@ -22,42 +22,42 @@ export function Footer({ locale }: { locale: Locale }) {
         <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-8 pb-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div className="grid gap-4">
             <Logo size="xl" />
-            <p className="font-head text-2xl">{t.footer.tagline}</p>
-            <p className="max-w-[42ch] text-ink/80">{t.footer.about}</p>
+            <p className="font-head text-2xl">{dictionary.footer.tagline}</p>
+            <p className="max-w-[42ch] text-ink/80">{dictionary.footer.about}</p>
           </div>
           <div className="grid content-start gap-3">
-            <h2 className="font-head text-xl">{t.footer.shop}</h2>
+            <h2 className="font-head text-xl">{dictionary.footer.shop}</h2>
             <Link href={`/${locale}#shop`} className="w-fit font-bold underline-offset-4 hover:underline">
-              {t.nav.shop}
+              {dictionary.nav.shop}
             </Link>
             <Link href={`/${locale}#matcher`} className="w-fit font-bold underline-offset-4 hover:underline">
-              {t.nav.matcher}
+              {dictionary.nav.matcher}
             </Link>
             <Link href={`/${locale}#plants`} className="w-fit font-bold underline-offset-4 hover:underline">
-              {t.nav.plants}
+              {dictionary.nav.plants}
             </Link>
             <Link href={`/${locale}/track`} className="w-fit font-bold underline-offset-4 hover:underline">
-              {t.footer.track}
+              {dictionary.footer.track}
             </Link>
             <Link href={`/${locale}/account`} className="w-fit font-bold underline-offset-4 hover:underline">
-              {t.footer.account}
+              {dictionary.footer.account}
             </Link>
             <LangSwitch className="mt-2 w-fit bg-paper" />
           </div>
           <div className="grid content-start gap-3">
-            <h2 className="font-head text-xl">{t.footer.follow}</h2>
+            <h2 className="font-head text-xl">{dictionary.footer.follow}</h2>
             <ul className="flex flex-wrap gap-3">
-              {SOCIALS.map((s) => (
-                <li key={s.id}>
+              {SOCIALS.map((social) => (
+                <li key={social.id}>
                   <a
-                    href={s.href}
+                    href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={s.label}
-                    title={s.label}
+                    aria-label={social.label}
+                    title={social.label}
                     className="grid size-12 place-items-center rounded-full border-[3px] border-ink bg-paper shadow-pop-sm transition-transform hover:-translate-y-1 hover:rotate-6 hover:bg-pink hover:text-white"
                   >
-                    <SocialIcon id={s.id} />
+                    <SocialIcon id={social.id} />
                   </a>
                 </li>
               ))}
@@ -66,7 +66,7 @@ export function Footer({ locale }: { locale: Locale }) {
         </div>
         <div className="border-t-[3px] border-dashed border-ink/25">
           <p className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-4 py-4 text-sm font-bold text-ink/80">
-            <span>{t.footer.made}</span>
+            <span>{dictionary.footer.made}</span>
             <span dir="ltr">© {new Date().getFullYear()} zal3a</span>
           </p>
         </div>

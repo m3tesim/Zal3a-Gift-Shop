@@ -1,46 +1,46 @@
-import { getDb, json, tx } from "./db";
+import { getDb, json, transaction } from "./db";
 import type { CareOption, Catalog, L, Plant, Product, Rating, Tag } from "@/lib/catalog";
 
 type Row = Record<string, unknown>;
 const EMPTY_L: L = { en: "", ar: "" };
 
-function toPlant(r: Row): Plant {
+function toPlant(row: Row): Plant {
   return {
-    id: r.id as string,
-    name: json(r.name, EMPTY_L),
-    latin: json(r.latin, EMPTY_L),
-    blurb: json(r.blurb, EMPTY_L),
-    price: r.price as number,
-    sun: (r.sun_option as string) ?? null,
-    water: (r.water_option as string) ?? null,
-    tint: r.tint as Plant["tint"],
-    icon: r.icon as Plant["icon"],
-    image: (r.image as string) ?? null,
-    stock: (r.stock as number) ?? null,
-    visible: !!r.visible,
-    potOnly: !!r.pot_only,
-    recipients: json(r.recipients, []),
-    vibes: json(r.vibes, []),
-    sort: r.sort as number,
+    id: row.id as string,
+    name: json(row.name, EMPTY_L),
+    latin: json(row.latin, EMPTY_L),
+    blurb: json(row.blurb, EMPTY_L),
+    price: row.price as number,
+    sun: (row.sun_option as string) ?? null,
+    water: (row.water_option as string) ?? null,
+    tint: row.tint as Plant["tint"],
+    icon: row.icon as Plant["icon"],
+    image: (row.image as string) ?? null,
+    stock: (row.stock as number) ?? null,
+    visible: !!row.visible,
+    potOnly: !!row.pot_only,
+    recipients: json(row.recipients, []),
+    vibes: json(row.vibes, []),
+    sort: row.sort as number,
   };
 }
 
-const toTag = (r: Row): Tag => ({
-  kind: r.kind as Tag["kind"],
-  id: r.id as string,
-  label: json(r.label, EMPTY_L),
-  emoji: r.emoji as string,
-  line: json(r.line, EMPTY_L),
-  visible: !!r.visible,
-  sort: r.sort as number,
+const toTag = (row: Row): Tag => ({
+  kind: row.kind as Tag["kind"],
+  id: row.id as string,
+  label: json(row.label, EMPTY_L),
+  emoji: row.emoji as string,
+  line: json(row.line, EMPTY_L),
+  visible: !!row.visible,
+  sort: row.sort as number,
 });
 
-const toCare = (r: Row): CareOption => ({
-  kind: r.kind as CareOption["kind"],
-  id: r.id as string,
-  label: json(r.label, EMPTY_L),
-  level: r.level as number,
-  sort: r.sort as number,
+const toCare = (row: Row): CareOption => ({
+  kind: row.kind as CareOption["kind"],
+  id: row.id as string,
+  label: json(row.label, EMPTY_L),
+  level: row.level as number,
+  sort: row.sort as number,
 });
 
 export const readTags = () => (getDb().prepare("SELECT * FROM tags ORDER BY kind, sort, id").all() as Row[]).map(toTag);
@@ -51,32 +51,32 @@ export function readRatings(): Record<string, Rating> {
   const rows = getDb()
     .prepare("SELECT product_id AS id, AVG(rating) AS avg, COUNT(*) AS n FROM reviews WHERE visible = 1 GROUP BY product_id")
     .all() as { id: string; avg: number; n: number }[];
-  return Object.fromEntries(rows.map((r) => [r.id, { avg: Math.round(r.avg * 10) / 10, count: r.n }]));
+  return Object.fromEntries(rows.map((row) => [row.id, { avg: Math.round(row.avg * 10) / 10, count: row.n }]));
 }
 
-function toProduct(r: Row, variants: Record<string, string>): Product {
+function toProduct(row: Row, variants: Record<string, string>): Product {
   return {
-    id: r.id as string,
-    name: json(r.name, EMPTY_L),
-    kind: json(r.kind, EMPTY_L),
-    desc: json(r.description, EMPTY_L),
-    badge: json(r.badge, EMPTY_L),
-    styled: json(r.styled, EMPTY_L),
-    price: r.price as number,
-    salePercent: r.sale_percent as number,
-    stock: (r.stock as number) ?? null,
-    slots: json(r.slots, [EMPTY_L]),
-    defaultPlants: json(r.default_plants, []),
-    tint: r.tint as Product["tint"],
-    image: r.image as string,
-    pos: r.pos as string,
-    vibes: json(r.vibes, []),
-    recipients: json(r.recipients, []),
-    specs: json(r.specs, []),
+    id: row.id as string,
+    name: json(row.name, EMPTY_L),
+    kind: json(row.kind, EMPTY_L),
+    desc: json(row.description, EMPTY_L),
+    badge: json(row.badge, EMPTY_L),
+    styled: json(row.styled, EMPTY_L),
+    price: row.price as number,
+    salePercent: row.sale_percent as number,
+    stock: (row.stock as number) ?? null,
+    slots: json(row.slots, [EMPTY_L]),
+    defaultPlants: json(row.default_plants, []),
+    tint: row.tint as Product["tint"],
+    image: row.image as string,
+    pos: row.pos as string,
+    vibes: json(row.vibes, []),
+    recipients: json(row.recipients, []),
+    specs: json(row.specs, []),
     variants,
-    visible: !!r.visible,
-    featured: !!r.featured,
-    sort: r.sort as number,
+    visible: !!row.visible,
+    featured: !!row.featured,
+    sort: row.sort as number,
   };
 }
 
@@ -85,12 +85,12 @@ export function readCatalog({ includeHidden = false } = {}): Catalog {
   const db = getDb();
   const where = includeHidden ? "" : "WHERE visible = 1";
   const variants: Record<string, Record<string, string>> = {};
-  for (const v of db.prepare("SELECT product_id, combo, image FROM variants").all() as Row[]) {
-    (variants[v.product_id as string] ??= {})[v.combo as string] = v.image as string;
+  for (const variant of db.prepare("SELECT product_id, combo, image FROM variants").all() as Row[]) {
+    (variants[variant.product_id as string] ??= {})[variant.combo as string] = variant.image as string;
   }
   return {
-    products: (db.prepare(`SELECT * FROM products ${where} ORDER BY sort, id`).all() as Row[]).map((r) =>
-      toProduct(r, variants[r.id as string] ?? {}),
+    products: (db.prepare(`SELECT * FROM products ${where} ORDER BY sort, id`).all() as Row[]).map((row) =>
+      toProduct(row, variants[row.id as string] ?? {}),
     ),
     plants: (db.prepare(`SELECT * FROM plants ${where} ORDER BY sort, id`).all() as Row[]).map(toPlant),
     tags: readTags(),
@@ -100,41 +100,41 @@ export function readCatalog({ includeHidden = false } = {}): Catalog {
 }
 
 export function getProduct(id: string) {
-  const r = getDb().prepare("SELECT * FROM products WHERE id = ?").get(id) as Row | undefined;
-  if (!r) return null;
+  const row = getDb().prepare("SELECT * FROM products WHERE id = ?").get(id) as Row | undefined;
+  if (!row) return null;
   const variants: Record<string, string> = {};
-  for (const v of getDb().prepare("SELECT combo, image FROM variants WHERE product_id = ?").all(id) as Row[]) {
-    variants[v.combo as string] = v.image as string;
+  for (const variant of getDb().prepare("SELECT combo, image FROM variants WHERE product_id = ?").all(id) as Row[]) {
+    variants[variant.combo as string] = variant.image as string;
   }
-  return toProduct(r, variants);
+  return toProduct(row, variants);
 }
 
 export function getPlant(id: string) {
-  const r = getDb().prepare("SELECT * FROM plants WHERE id = ?").get(id) as Row | undefined;
-  return r ? toPlant(r) : null;
+  const row = getDb().prepare("SELECT * FROM plants WHERE id = ?").get(id) as Row | undefined;
+  return row ? toPlant(row) : null;
 }
 
 const nextSort = (table: "products" | "plants") =>
   ((getDb().prepare(`SELECT COALESCE(MAX(sort), 0) + 1 AS n FROM ${table}`).get() as { n: number }).n);
 
-export function savePlant(p: Plant, isNew: boolean) {
+export function savePlant(plant: Plant, isNew: boolean) {
   const db = getDb();
   const values = {
-    $id: p.id,
-    $name: JSON.stringify(p.name),
-    $latin: JSON.stringify(p.latin),
-    $blurb: JSON.stringify(p.blurb),
-    $price: p.price,
-    $sun: p.sun,
-    $water: p.water,
-    $vibes: JSON.stringify(p.vibes),
-    $tint: p.tint,
-    $icon: p.icon,
-    $image: p.image,
-    $stock: p.stock,
-    $visible: p.visible ? 1 : 0,
-    $pot_only: p.potOnly ? 1 : 0,
-    $recipients: JSON.stringify(p.recipients),
+    $id: plant.id,
+    $name: JSON.stringify(plant.name),
+    $latin: JSON.stringify(plant.latin),
+    $blurb: JSON.stringify(plant.blurb),
+    $price: plant.price,
+    $sun: plant.sun,
+    $water: plant.water,
+    $vibes: JSON.stringify(plant.vibes),
+    $tint: plant.tint,
+    $icon: plant.icon,
+    $image: plant.image,
+    $stock: plant.stock,
+    $visible: plant.visible ? 1 : 0,
+    $pot_only: plant.potOnly ? 1 : 0,
+    $recipients: JSON.stringify(plant.recipients),
   };
   if (isNew) {
     db.prepare(
@@ -149,31 +149,31 @@ export function savePlant(p: Plant, isNew: boolean) {
   }
 }
 
-export function saveProduct(p: Omit<Product, "variants" | "sort">, isNew: boolean) {
+export function saveProduct(product: Omit<Product, "variants" | "sort">, isNew: boolean) {
   const values = {
-    $id: p.id,
-    $name: JSON.stringify(p.name),
-    $kind: JSON.stringify(p.kind),
-    $description: JSON.stringify(p.desc),
-    $badge: JSON.stringify(p.badge),
-    $styled: JSON.stringify(p.styled),
-    $price: p.price,
-    $sale_percent: p.salePercent,
-    $stock: p.stock,
-    $slots: JSON.stringify(p.slots),
-    $default_plants: JSON.stringify(p.defaultPlants),
-    $tint: p.tint,
-    $image: p.image,
-    $pos: p.pos,
-    $vibes: JSON.stringify(p.vibes),
-    $recipients: JSON.stringify(p.recipients),
-    $specs: JSON.stringify(p.specs),
-    $visible: p.visible ? 1 : 0,
-    $featured: p.featured ? 1 : 0,
+    $id: product.id,
+    $name: JSON.stringify(product.name),
+    $kind: JSON.stringify(product.kind),
+    $description: JSON.stringify(product.desc),
+    $badge: JSON.stringify(product.badge),
+    $styled: JSON.stringify(product.styled),
+    $price: product.price,
+    $sale_percent: product.salePercent,
+    $stock: product.stock,
+    $slots: JSON.stringify(product.slots),
+    $default_plants: JSON.stringify(product.defaultPlants),
+    $tint: product.tint,
+    $image: product.image,
+    $pos: product.pos,
+    $vibes: JSON.stringify(product.vibes),
+    $recipients: JSON.stringify(product.recipients),
+    $specs: JSON.stringify(product.specs),
+    $visible: product.visible ? 1 : 0,
+    $featured: product.featured ? 1 : 0,
   };
-  tx(() => {
+  transaction(() => {
     const db = getDb();
-    if (p.featured) db.prepare("UPDATE products SET featured = 0 WHERE id != ?").run(p.id);
+    if (product.featured) db.prepare("UPDATE products SET featured = 0 WHERE id != ?").run(product.id);
     if (isNew) {
       db.prepare(
         `INSERT INTO products (id, name, kind, description, badge, styled, price, sale_percent, stock, slots, default_plants, tint,
@@ -193,29 +193,29 @@ export function saveProduct(p: Omit<Product, "variants" | "sort">, isNew: boolea
 
 /** Removes the product and returns every image URL it owned, so the caller can delete the files. */
 export function deleteProduct(id: string) {
-  const p = getProduct(id);
-  if (!p) return [];
+  const product = getProduct(id);
+  if (!product) return [];
   getDb().prepare("DELETE FROM products WHERE id = ?").run(id);
-  return [p.image, ...Object.values(p.variants)];
+  return [product.image, ...Object.values(product.variants)];
 }
 
 /** Plants used as a pot's default can't be deleted. Returns the blocking pot names, or the image URLs to delete on success. */
 export function deletePlant(id: string): { blockedBy: string[] } | { images: string[] } {
   const db = getDb();
   const users = (db.prepare("SELECT name, default_plants FROM products").all() as Row[])
-    .filter((r) => json<string[]>(r.default_plants, []).includes(id))
-    .map((r) => json(r.name, EMPTY_L).en);
+    .filter((row) => json<string[]>(row.default_plants, []).includes(id))
+    .map((row) => json(row.name, EMPTY_L).en);
   if (users.length) return { blockedBy: users };
   const plant = getPlant(id);
   // Combo images that include this plant are no longer reachable.
-  const orphans = (db.prepare("SELECT product_id, combo, image FROM variants").all() as Row[]).filter((v) =>
-    (v.combo as string).split("+").includes(id),
+  const orphans = (db.prepare("SELECT product_id, combo, image FROM variants").all() as Row[]).filter((variant) =>
+    (variant.combo as string).split("+").includes(id),
   );
-  tx(() => {
-    for (const v of orphans) db.prepare("DELETE FROM variants WHERE product_id = ? AND combo = ?").run(v.product_id as string, v.combo as string);
+  transaction(() => {
+    for (const variant of orphans) db.prepare("DELETE FROM variants WHERE product_id = ? AND combo = ?").run(variant.product_id as string, variant.combo as string);
     db.prepare("DELETE FROM plants WHERE id = ?").run(id);
   });
-  return { images: [...(plant?.image ? [plant.image] : []), ...orphans.map((v) => v.image as string)] };
+  return { images: [...(plant?.image ? [plant.image] : []), ...orphans.map((variant) => variant.image as string)] };
 }
 
 /** Sets (or clears, with null) the image for one plant combination. Returns the replaced URL. */
@@ -248,14 +248,14 @@ export function setSale(id: string, pct: number) {
 
 /** Swap sort position with the neighbour above (-1) or below (+1). */
 export function move(table: Table, id: string, dir: -1 | 1) {
-  tx(() => {
+  transaction(() => {
     const db = getDb();
     const rows = db.prepare(`SELECT id FROM ${table} ORDER BY sort, id`).all() as { id: string }[];
-    const i = rows.findIndex((r) => r.id === id);
-    const j = i + dir;
-    if (i < 0 || j < 0 || j >= rows.length) return;
-    [rows[i], rows[j]] = [rows[j], rows[i]];
+    const currentIndex = rows.findIndex((row) => row.id === id);
+    const targetIndex = currentIndex + dir;
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= rows.length) return;
+    [rows[currentIndex], rows[targetIndex]] = [rows[targetIndex], rows[currentIndex]];
     const upd = db.prepare(`UPDATE ${table} SET sort = ? WHERE id = ?`);
-    rows.forEach((r, k) => upd.run(k + 1, r.id));
+    rows.forEach((row, position) => upd.run(position + 1, row.id));
   });
 }

@@ -53,14 +53,14 @@ SITE_URL=https://zal3a.com`}</pre>
       {campaigns.length > 0 && (
         <Panel title="Offer history">
           <ul className="grid gap-2">
-            {campaigns.map((c) => (
-              <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-line px-4 py-2">
+            {campaigns.map((campaign) => (
+              <li key={campaign.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-line px-4 py-2">
                 <span>
-                  <b>{c.subject.en}</b> <span className="text-sm text-ink-soft">· {fmt(c.createdAt)}</span>
+                  <b>{campaign.subject.en}</b> <span className="text-sm text-ink-soft">· {fmt(campaign.createdAt)}</span>
                 </span>
                 <span className="flex items-center gap-2 text-sm font-bold">
-                  <span className={`rounded-full px-2 py-0.5 ${c.status === "sent" ? "bg-lime" : "bg-sun"}`}>{c.status === "sent" ? "Done" : "Sending…"}</span>
-                  {c.sent}/{c.recipients} sent{c.failed > 0 && <span className="text-pink"> · {c.failed} failed</span>}
+                  <span className={`rounded-full px-2 py-0.5 ${campaign.status === "sent" ? "bg-lime" : "bg-sun"}`}>{campaign.status === "sent" ? "Done" : "Sending…"}</span>
+                  {campaign.sent}/{campaign.recipients} sent{campaign.failed > 0 && <span className="text-pink"> · {campaign.failed} failed</span>}
                 </span>
               </li>
             ))}
@@ -73,19 +73,19 @@ SITE_URL=https://zal3a.com`}</pre>
           <p className="font-bold text-ink-soft">Nothing yet.</p>
         ) : (
           <ul className="grid gap-2">
-            {outbox.map((e) => (
-              <li key={e.id}>
+            {outbox.map((email) => (
+              <li key={email.id}>
                 <a
-                  href={`/api/admin/emails/${e.id}`}
+                  href={`/api/admin/emails/${email.id}`}
                   target="_blank"
                   className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border-2 border-line px-4 py-2 hover:border-ink"
-                  title={e.error || undefined}
+                  title={email.error || undefined}
                 >
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${STATUS[e.status]}`}>{e.status === "skipped" ? "not sent" : e.status}</span>
-                  <span className="min-w-0 flex-1 truncate font-bold">{e.subject}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-extrabold ${STATUS[email.status]}`}>{email.status === "skipped" ? "not sent" : email.status}</span>
+                  <span className="min-w-0 flex-1 truncate font-bold">{email.subject}</span>
                   <span className="text-sm text-ink-soft">
-                    {e.kind}
-                    {e.orderNumber && ` · ${e.orderNumber}`} · {e.to} · {fmt(e.createdAt)}
+                    {email.kind}
+                    {email.orderNumber && ` · ${email.orderNumber}`} · {email.to} · {fmt(email.createdAt)}
                   </span>
                 </a>
               </li>

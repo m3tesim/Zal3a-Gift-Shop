@@ -15,10 +15,10 @@ export default async function ResetPage({ params, searchParams }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const { t: token = "" } = await searchParams;
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
   return (
-    <AuthShell locale={locale} title={t.account.resetTitle}>
-      {token ? <ResetForm token={token} /> : <p className="font-bold">{t.account.badLink}</p>}
+    <AuthShell locale={locale} title={dictionary.account.resetTitle}>
+      {token ? <ResetForm token={token} /> : <p className="font-bold">{dictionary.account.badLink}</p>}
     </AuthShell>
   );
 }

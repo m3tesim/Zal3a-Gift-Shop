@@ -21,13 +21,13 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: Omit<Props, "children">): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
   return {
     metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
-    title: { default: t.meta.title, template: `%s · zal3a` },
-    description: t.meta.description,
+    title: { default: dictionary.meta.title, template: `%s · zal3a` },
+    description: dictionary.meta.description,
     alternates: { languages: { en: "/en", ar: "/ar" } },
-    openGraph: { title: t.meta.title, description: t.meta.description, images: ["/img/duo.webp"] },
+    openGraph: { title: dictionary.meta.title, description: dictionary.meta.description, images: ["/img/duo.webp"] },
   };
 }
 

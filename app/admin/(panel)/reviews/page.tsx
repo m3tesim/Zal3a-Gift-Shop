@@ -11,11 +11,11 @@ export default async function ReviewsAdminPage({ searchParams }: { searchParams:
   const reviews = adminReviews({ visible });
   const all = adminReviews();
   const { products } = readCatalog({ includeHidden: true });
-  const potName = (id: string) => products.find((p) => p.id === id)?.name.en ?? id;
+  const potName = (id: string) => products.find((product) => product.id === id)?.name.en ?? id;
   const tabs = [
-    { key: undefined, label: "All", n: all.length },
-    { key: "shown", label: "Shown", n: all.filter((r) => r.visible).length },
-    { key: "hidden", label: "Hidden", n: all.filter((r) => !r.visible).length },
+    { key: undefined, label: "All", count: all.length },
+    { key: "shown", label: "Shown", count: all.filter((review) => review.visible).length },
+    { key: "hidden", label: "Hidden", count: all.filter((review) => !review.visible).length },
   ];
 
   return (
@@ -27,13 +27,13 @@ export default async function ReviewsAdminPage({ searchParams }: { searchParams:
         </p>
       </header>
       <nav className="flex flex-wrap gap-2">
-        {tabs.map((t) => (
+        {tabs.map((tab) => (
           <Link
-            key={t.label}
-            href={t.key ? `/admin/reviews?show=${t.key}` : "/admin/reviews"}
-            className={`rounded-full border-2 px-3 py-1 font-bold ${show === t.key ? "border-ink bg-sun" : "border-line bg-paper hover:border-ink"}`}
+            key={tab.label}
+            href={tab.key ? `/admin/reviews?show=${tab.key}` : "/admin/reviews"}
+            className={`rounded-full border-2 px-3 py-1 font-bold ${show === tab.key ? "border-ink bg-sun" : "border-line bg-paper hover:border-ink"}`}
           >
-            {t.label} <span className="text-ink-soft">{t.n}</span>
+            {tab.label} <span className="text-ink-soft">{tab.count}</span>
           </Link>
         ))}
       </nav>
@@ -41,13 +41,13 @@ export default async function ReviewsAdminPage({ searchParams }: { searchParams:
         <p className="rounded-3xl border-[3px] border-dashed border-ink/30 p-8 text-center font-bold text-ink-soft">No reviews here yet.</p>
       ) : (
         <ul className="grid gap-4">
-          {reviews.map((r) => (
+          {reviews.map((review) => (
             <ReviewEditor
-              key={r.id}
-              review={{ id: r.id, author: r.author, rating: r.rating, body: r.body, reply: r.reply, visible: r.visible }}
-              pot={potName(r.productId)}
-              date={new Date(r.createdAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}
-              href={`/${r.locale}/pots/${r.productId}#reviews`}
+              key={review.id}
+              review={{ id: review.id, author: review.author, rating: review.rating, body: review.body, reply: review.reply, visible: review.visible }}
+              pot={potName(review.productId)}
+              date={new Date(review.createdAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}
+              href={`/${review.locale}/pots/${review.productId}#reviews`}
             />
           ))}
         </ul>

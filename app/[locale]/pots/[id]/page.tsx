@@ -12,17 +12,17 @@ type Props = { params: Promise<{ locale: string; id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, id } = await params;
-  const p = productOf(readCatalog(), id);
-  if (!isLocale(locale) || !p) return {};
-  return { title: p.name[locale], description: p.desc[locale], openGraph: { images: [p.image] } };
+  const product = productOf(readCatalog(), id);
+  if (!isLocale(locale) || !product) return {};
+  return { title: product.name[locale], description: product.desc[locale], openGraph: { images: [product.image] } };
 }
 
 export default async function PotPage({ params }: Props) {
   const { locale, id } = await params;
   const catalog = readCatalog();
   if (!isLocale(locale) || !productOf(catalog, id)) notFound();
-  const t = getDict(locale);
-  const mates = catalog.products.filter((p) => p.id !== id);
+  const dictionary = getDict(locale);
+  const mates = catalog.products.filter((product) => product.id !== id);
 
   return (
     <>
@@ -31,15 +31,15 @@ export default async function PotPage({ params }: Props) {
       {mates.length > 0 && (
         <section className="mx-4 rounded-[40px] border-[3px] border-ink bg-lilac-soft py-10 sm:mx-6">
           <div className="mx-auto mb-6 grid max-w-6xl justify-items-center gap-3 px-4 text-center">
-            <span className="eyebrow">{t.product.shelfEyebrow}</span>
-            <h2 className="font-head text-[clamp(2rem,4.4vw,3.2rem)] font-extrabold">{t.product.shelfTitle}</h2>
+            <span className="eyebrow">{dictionary.product.shelfEyebrow}</span>
+            <h2 className="font-head text-[clamp(2rem,4.4vw,3.2rem)] font-extrabold">{dictionary.product.shelfTitle}</h2>
           </div>
           <div className="no-scrollbar snap-x snap-mandatory scroll-px-4 overflow-x-auto px-4 pt-2 pb-4 sm:scroll-px-6 sm:px-6">
             {/* w-max + mx-auto: centred when the cards fit, scrolls from the first card when they don't */}
             <div className="mx-auto flex w-max gap-5">
-              {mates.map((p, i) => (
-                <div key={p.id} className="grid w-[min(78vw,280px)] shrink-0 snap-start">
-                  <ProductCard product={p} index={i} />
+              {mates.map((product, index) => (
+                <div key={product.id} className="grid w-[min(78vw,280px)] shrink-0 snap-start">
+                  <ProductCard product={product} index={index} />
                 </div>
               ))}
             </div>

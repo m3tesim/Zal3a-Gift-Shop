@@ -8,17 +8,17 @@ import { comboKey, type Plant, type Product } from "@/lib/catalog";
 
 /** Every way to fill the pot's slots with the plants: [[a,a],[a,b],[b,a],[b,b]] */
 function combos(ids: string[], slots: number): string[][] {
-  return slots === 0 ? [[]] : combos(ids, slots - 1).flatMap((c) => ids.map((id) => [...c, id]));
+  return slots === 0 ? [[]] : combos(ids, slots - 1).flatMap((combo) => ids.map((id) => [...combo, id]));
 }
 
 export function VariantGrid({ product, plants }: { product: Product; plants: Plant[] }) {
   const [error, setError] = useState("");
   const all = combos(
-    plants.map((p) => p.id),
+    plants.map((plant) => plant.id),
     product.slots.length,
   );
-  const have = all.filter((c) => product.variants[comboKey(c)]).length;
-  const byId = Object.fromEntries(plants.map((p) => [p.id, p]));
+  const have = all.filter((combo) => product.variants[comboKey(combo)]).length;
+  const byId = Object.fromEntries(plants.map((plant) => [plant.id, plant]));
 
   return (
     <Panel
@@ -32,14 +32,14 @@ export function VariantGrid({ product, plants }: { product: Product; plants: Pla
           Show all {all.length} combo photo slots
         </summary>
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {all.map((c) => {
-            const key = comboKey(c);
+          {all.map((combo) => {
+            const key = comboKey(combo);
             return (
               <li key={key} className="grid content-start gap-2">
                 <div className="flex flex-wrap items-center gap-1 text-sm font-bold">
-                  {c.map((id, i) => (
-                    <span key={i} className="inline-flex items-center gap-1">
-                      {i > 0 && <span className="text-ink-soft">+</span>}
+                  {combo.map((id, index) => (
+                    <span key={index} className="inline-flex items-center gap-1">
+                      {index > 0 && <span className="text-ink-soft">+</span>}
                       <PlantIcon icon={byId[id].icon} className="size-6" />
                       {byId[id].name.en}
                     </span>
@@ -50,8 +50,8 @@ export function VariantGrid({ product, plants }: { product: Product; plants: Pla
                   removable
                   emptyText="Using main photo"
                   onChange={async (url) => {
-                    const r = await setVariantAction(product.id, key, url);
-                    setError(r.ok ? "" : r.error);
+                    const result = await setVariantAction(product.id, key, url);
+                    setError(result.ok ? "" : result.error);
                   }}
                 />
               </li>

@@ -6,14 +6,14 @@ import { useShop } from "@/lib/store";
 import { maxQty, productOf } from "@/lib/catalog";
 
 export function useAddToBag() {
-  const { locale, t } = useI18n();
+  const { locale, dictionary } = useI18n();
   const catalog = useCatalog();
-  const add = useShop((s) => s.add);
-  const showToast = useShop((s) => s.showToast);
+  const add = useShop((state) => state.add);
+  const showToast = useShop((state) => state.showToast);
   return (id: string, plants: string[], qty = 1) => {
-    const p = productOf(catalog, id);
-    if (!p) return;
-    add(id, plants, qty, maxQty(catalog, p, plants));
-    showToast(t.cart.added(p.name[locale]));
+    const product = productOf(catalog, id);
+    if (!product) return;
+    add(id, plants, qty, maxQty(catalog, product, plants));
+    showToast(dictionary.cart.added(product.name[locale]));
   };
 }

@@ -18,15 +18,15 @@ function Stat({ label, value, tone, href }: { label: string; value: React.ReactN
 }
 
 export default function AdminHome() {
-  const c = readCatalog({ includeHidden: true });
+  const catalog = readCatalog({ includeHidden: true });
   const { byStatus, revenue } = orderStats();
   const recent = listOrders().slice(0, 5);
   const items = [
-    ...c.products.map((p) => ({ kind: "Pot", href: `/admin/pots/${p.id}`, name: p.name.en, stock: p.stock, visible: p.visible })),
-    ...c.plants.map((p) => ({ kind: "Plant", href: `/admin/plants/${p.id}`, name: p.name.en, stock: p.stock, visible: p.visible })),
+    ...catalog.products.map((product) => ({ kind: "Pot", href: `/admin/pots/${product.id}`, name: product.name.en, stock: product.stock, visible: product.visible })),
+    ...catalog.plants.map((plant) => ({ kind: "Plant", href: `/admin/plants/${plant.id}`, name: plant.name.en, stock: plant.stock, visible: plant.visible })),
   ];
-  const out = items.filter((i) => soldOut(i));
-  const low = items.filter((i) => i.stock !== null && i.stock > 0 && i.stock <= 3);
+  const out = items.filter((item) => soldOut(item));
+  const low = items.filter((item) => item.stock !== null && item.stock > 0 && item.stock <= 3);
 
   return (
     <div className="grid gap-6">
@@ -38,7 +38,7 @@ export default function AdminHome() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="New orders" value={byStatus.new ?? 0} tone="bg-pink text-white" href="/admin/orders?status=new" />
         <Stat label="Sales (not cancelled)" value={formatPrice(revenue, "en")} tone="bg-lime" href="/admin/orders" />
-        <Stat label="Pots on the shop" value={`${c.products.filter((p) => p.visible).length}/${c.products.length}`} tone="bg-sky" href="/admin/pots" />
+        <Stat label="Pots on the shop" value={`${catalog.products.filter((product) => product.visible).length}/${catalog.products.length}`} tone="bg-sky" href="/admin/pots" />
         <Stat label="Sold out" value={out.length} tone="bg-sun" href="/admin/pots" />
       </div>
 
@@ -48,15 +48,15 @@ export default function AdminHome() {
             <p className="font-bold text-ink-soft">All stocked up ✿</p>
           ) : (
             <ul className="grid gap-2">
-              {[...out, ...low].map((i) => (
-                <li key={i.href}>
-                  <Link href={i.href} className="flex items-center justify-between gap-3 rounded-2xl border-2 border-line px-3 py-2 hover:border-ink">
+              {[...out, ...low].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="flex items-center justify-between gap-3 rounded-2xl border-2 border-line px-3 py-2 hover:border-ink">
                     <span>
-                      <span className="text-xs font-extrabold text-ink-soft uppercase">{i.kind}</span> <b>{i.name}</b>
-                      {!i.visible && <span className="text-sm text-ink-soft"> (hidden)</span>}
+                      <span className="text-xs font-extrabold text-ink-soft uppercase">{item.kind}</span> <b>{item.name}</b>
+                      {!item.visible && <span className="text-sm text-ink-soft"> (hidden)</span>}
                     </span>
-                    <span className={`rounded-full px-2 py-0.5 text-sm font-extrabold ${i.stock === 0 ? "bg-pink text-white" : "bg-sun"}`}>
-                      {i.stock === 0 ? "Sold out" : `${i.stock} left`}
+                    <span className={`rounded-full px-2 py-0.5 text-sm font-extrabold ${item.stock === 0 ? "bg-pink text-white" : "bg-sun"}`}>
+                      {item.stock === 0 ? "Sold out" : `${item.stock} left`}
                     </span>
                   </Link>
                 </li>
@@ -70,14 +70,14 @@ export default function AdminHome() {
             <p className="font-bold text-ink-soft">No orders yet. They&apos;ll show up here.</p>
           ) : (
             <ul className="grid gap-2">
-              {recent.map((o) => (
-                <li key={o.number} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-line px-3 py-2">
-                  <Link href={`/admin/orders/${o.number}`} className="font-bold hover:text-pink">
-                    {o.number} · {o.contact.name}
+              {recent.map((order) => (
+                <li key={order.number} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-line px-3 py-2">
+                  <Link href={`/admin/orders/${order.number}`} className="font-bold hover:text-pink">
+                    {order.number} · {order.contact.name}
                   </Link>
                   <span className="flex items-center gap-2">
-                    <b className="tabular-nums">{formatPrice(o.total, "en")}</b>
-                    <StatusSelect number={o.number} status={o.status} />
+                    <b className="tabular-nums">{formatPrice(order.total, "en")}</b>
+                    <StatusSelect number={order.number} status={order.status} />
                   </span>
                 </li>
               ))}

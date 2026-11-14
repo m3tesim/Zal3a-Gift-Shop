@@ -65,18 +65,18 @@ const INITIAL: Form = {
 };
 
 function isoDate(daysFromNow: number) {
-  const d = new Date();
-  d.setDate(d.getDate() + daysFromNow);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const today = new Date();
+  today.setDate(today.getDate() + daysFromNow);
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 }
 
-function Step({ n, title, color, children }: { n: number; title: string; color: string; children: React.ReactNode }) {
+function Step({ stepNumber, title, color, children }: { stepNumber: number; title: string; color: string; children: React.ReactNode }) {
   return (
     <fieldset className="sticker grid gap-5 p-5 sm:p-6">
       <legend className="float-left w-full">
         <span className="flex items-center gap-3 font-head text-2xl font-extrabold">
           <span className={`grid size-10 shrink-0 place-items-center rounded-full border-[3px] border-ink font-logo text-xl font-normal ${color}`}>
-            {n}
+            {stepNumber}
           </span>
           {title}
         </span>
@@ -87,48 +87,48 @@ function Step({ n, title, color, children }: { n: number; title: string; color: 
 }
 
 export function CheckoutForm() {
-  const { locale, t } = useI18n();
-  const c = t.checkout;
+  const { locale, dictionary } = useI18n();
+  const checkoutCopy = dictionary.checkout;
   const router = useRouter();
-  const hydrated = useShop((s) => s.hydrated);
-  const lines = useShop((s) => s.lines);
-  const placeOrder = useShop((s) => s.placeOrder);
+  const hydrated = useShop((state) => state.hydrated);
+  const lines = useShop((state) => state.lines);
+  const placeOrder = useShop((state) => state.placeOrder);
   const catalog = useCatalog();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState("");
   const me = useMe();
 
-  const [f, setF] = useState<Form>(INITIAL);
+  const [form, setForm] = useState<Form>(INITIAL);
   const [tried, setTried] = useState(false);
   const [placing, setPlacing] = useState(false);
-  const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((prev) => ({ ...prev, [k]: v }));
+  const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm((prev) => ({ ...prev, [key]: value }));
 
   useEffect(() => {
-    if (me) setF((s) => ({ ...s, name: s.name || me.name, phone: s.phone || me.phone, email: s.email || me.email }));
+    if (me) setForm((previous) => ({ ...previous, name: previous.name || me.name, phone: previous.phone || me.phone, email: previous.email || me.email }));
   }, [me]);
 
   const subtotal = cartSubtotal(catalog, lines);
-  const fee = deliveryFee(f.governorate, subtotal);
+  const fee = deliveryFee(form.governorate, subtotal);
   const total = subtotal + fee;
 
   const errors: Partial<Record<keyof Form, string>> = {};
-  if (!f.name.trim()) errors.name = c.errors.name;
-  if (!EG_MOBILE.test(cleanPhone(f.phone))) errors.phone = c.errors.phone;
-  if (f.email.trim() && !EMAIL.test(f.email.trim())) errors.email = c.errors.email;
-  if (f.isGift && !f.recipientName.trim()) errors.recipientName = c.errors.recipientName;
-  if (f.isGift && !EG_MOBILE.test(cleanPhone(f.recipientPhone))) errors.recipientPhone = c.errors.recipientPhone;
-  if (!f.area.trim()) errors.area = c.errors.area;
-  if (!f.street.trim()) errors.street = c.errors.address;
+  if (!form.name.trim()) errors.name = checkoutCopy.errors.name;
+  if (!EG_MOBILE.test(cleanPhone(form.phone))) errors.phone = checkoutCopy.errors.phone;
+  if (form.email.trim() && !EMAIL.test(form.email.trim())) errors.email = checkoutCopy.errors.email;
+  if (form.isGift && !form.recipientName.trim()) errors.recipientName = checkoutCopy.errors.recipientName;
+  if (form.isGift && !EG_MOBILE.test(cleanPhone(form.recipientPhone))) errors.recipientPhone = checkoutCopy.errors.recipientPhone;
+  if (!form.area.trim()) errors.area = checkoutCopy.errors.area;
+  if (!form.street.trim()) errors.street = checkoutCopy.errors.address;
   const shown = tried ? errors : {};
 
-  const input = (k: keyof Form) => ({
-    id: `co-${k}`,
-    "aria-invalid": shown[k] ? true : undefined,
-    "aria-describedby": `co-${k}-msg`,
+  const input = (key: keyof Form) => ({
+    id: `co-${key}`,
+    "aria-invalid": shown[key] ? true : undefined,
+    "aria-describedby": `co-${key}-msg`,
   });
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
+  function submit(event: React.FormEvent) {
+    event.preventDefault();
     setTried(true);
     const firstBad = (Object.keys(errors) as (keyof Form)[])[0];
     if (firstBad) {
@@ -140,12 +140,12 @@ export function CheckoutForm() {
       const result = await placeOrderAction({
         locale,
         lines,
-        contact: { name: f.name, phone: f.phone, email: f.email },
-        gift: f.isGift
-          ? { name: f.recipientName, phone: f.recipientPhone, wrap: f.wrap, note: f.note, hidePrices: f.hidePrices }
+        contact: { name: form.name, phone: form.phone, email: form.email },
+        gift: form.isGift
+          ? { name: form.recipientName, phone: form.recipientPhone, wrap: form.wrap, note: form.note, hidePrices: form.hidePrices }
           : null,
-        address: { governorate: f.governorate, area: f.area, street: f.street, apartment: f.apartment, date: f.date, notes: f.notes },
-        payment: f.payment,
+        address: { governorate: form.governorate, area: form.area, street: form.street, apartment: form.apartment, date: form.date, notes: form.notes },
+        payment: form.payment,
       });
       if (result.ok) {
         setPlacing(true);
@@ -155,7 +155,7 @@ export function CheckoutForm() {
       }
       const item = result.item ?? "";
       setServerError(
-        result.error === "stock" ? c.errors.stock(item) : result.error === "unavailable" ? c.errors.unavailable(item) : c.errors.server,
+        result.error === "stock" ? checkoutCopy.errors.stock(item) : result.error === "unavailable" ? checkoutCopy.errors.unavailable(item) : checkoutCopy.errors.server,
       );
       // Pull fresh stock/prices; the catalog provider then trims the bag to what's available.
       router.refresh();
@@ -166,7 +166,7 @@ export function CheckoutForm() {
     return (
       <div className="grid min-h-[50vh] place-content-center justify-items-center gap-4 text-center">
         <PlantIcon icon="cactus" className="size-24 animate-wiggle" />
-        {placing && <p className="font-head text-2xl">{c.placing}</p>}
+        {placing && <p className="font-head text-2xl">{checkoutCopy.placing}</p>}
       </div>
     );
   }
@@ -175,10 +175,10 @@ export function CheckoutForm() {
     return (
       <div className="sticker mx-auto grid max-w-md justify-items-center gap-4 p-10 text-center">
         <PlantIcon icon="pot" className="size-28 animate-wiggle" />
-        <h2 className="font-head text-3xl font-extrabold">{c.emptyTitle}</h2>
-        <p className="text-ink-soft">{c.emptyText}</p>
+        <h2 className="font-head text-3xl font-extrabold">{checkoutCopy.emptyTitle}</h2>
+        <p className="text-ink-soft">{checkoutCopy.emptyText}</p>
         <Link href={`/${locale}#shop`} className="btn btn-pink">
-          {c.emptyCta}
+          {checkoutCopy.emptyCta}
         </Link>
       </div>
     );
@@ -188,23 +188,23 @@ export function CheckoutForm() {
     <form noValidate onSubmit={submit} className="grid items-start gap-8 lg:grid-cols-[1fr_400px]">
       <div className="grid gap-7">
         {me ? (
-          <p className="rounded-3xl border-[3px] border-ink bg-lime-soft px-5 py-3 font-bold">✓ {c.signedInAs(me.email)}</p>
+          <p className="rounded-3xl border-[3px] border-ink bg-lime-soft px-5 py-3 font-bold">✓ {checkoutCopy.signedInAs(me.email)}</p>
         ) : (
           me === null && (
             <p className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border-[3px] border-dashed border-ink bg-paper px-5 py-3 font-bold">
-              {c.signInNudge}
+              {checkoutCopy.signInNudge}
               <Link href={`/${locale}/account/login?next=/${locale}/checkout`} className="rounded-full border-2 border-ink bg-sun px-4 py-1 font-extrabold hover:-rotate-2">
-                {c.signIn}
+                {checkoutCopy.signIn}
               </Link>
             </p>
           )
         )}
-        <Step n={1} title={c.s1} color="bg-sun">
+        <Step stepNumber={1} title={checkoutCopy.s1} color="bg-sun">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="co-name" label={c.name} error={shown.name}>
-              <input {...input("name")} className="field" autoComplete="name" value={f.name} onChange={(e) => set("name", e.target.value)} />
+            <Field id="co-name" label={checkoutCopy.name} error={shown.name}>
+              <input {...input("name")} className="field" autoComplete="name" value={form.name} onChange={(event) => set("name", event.target.value)} />
             </Field>
-            <Field id="co-phone" label={c.phone} error={shown.phone} hint={c.phoneHint}>
+            <Field id="co-phone" label={checkoutCopy.phone} error={shown.phone} hint={checkoutCopy.phoneHint}>
               <input
                 {...input("phone")}
                 className="field"
@@ -213,55 +213,55 @@ export function CheckoutForm() {
                 dir="ltr"
                 autoComplete="tel"
                 placeholder="01X XXXX XXXX"
-                value={f.phone}
-                onChange={(e) => set("phone", e.target.value)}
+                value={form.phone}
+                onChange={(event) => set("phone", event.target.value)}
               />
             </Field>
-            <Field id="co-email" label={c.email} error={shown.email} hint={c.emailHint} optional className="sm:col-span-2">
+            <Field id="co-email" label={checkoutCopy.email} error={shown.email} hint={checkoutCopy.emailHint} optional className="sm:col-span-2">
               <input
                 {...input("email")}
                 className="field"
                 type="email"
                 dir="ltr"
                 autoComplete="email"
-                value={f.email}
-                onChange={(e) => set("email", e.target.value)}
+                value={form.email}
+                onChange={(event) => set("email", event.target.value)}
               />
             </Field>
           </div>
         </Step>
 
-        <Step n={2} title={c.s2} color="bg-pink text-white">
+        <Step stepNumber={2} title={checkoutCopy.s2} color="bg-pink text-white">
           <div className="grid gap-3 sm:grid-cols-2">
             <ChoiceCard
               name="gift"
               value="yes"
-              checked={f.isGift}
+              checked={form.isGift}
               onChange={() => set("isGift", true)}
-              title={c.giftYes}
-              sub={c.giftYesSub}
+              title={checkoutCopy.giftYes}
+              sub={checkoutCopy.giftYesSub}
               icon={<GiftIcon className="shrink-0 text-pink" />}
               onClass="bg-pink-soft"
             />
             <ChoiceCard
               name="gift"
               value="no"
-              checked={!f.isGift}
+              checked={!form.isGift}
               onChange={() => set("isGift", false)}
-              title={c.giftNo}
-              sub={c.giftNoSub}
+              title={checkoutCopy.giftNo}
+              sub={checkoutCopy.giftNoSub}
               icon={<PlantIcon icon="cactus" className="size-7 shrink-0" />}
               onClass="bg-lime-soft"
             />
           </div>
 
-          {f.isGift && (
+          {form.isGift && (
             <div className="grid animate-rise gap-5">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field id="co-recipientName" label={c.recipientName} error={shown.recipientName}>
-                  <input {...input("recipientName")} className="field" value={f.recipientName} onChange={(e) => set("recipientName", e.target.value)} />
+                <Field id="co-recipientName" label={checkoutCopy.recipientName} error={shown.recipientName}>
+                  <input {...input("recipientName")} className="field" value={form.recipientName} onChange={(event) => set("recipientName", event.target.value)} />
                 </Field>
-                <Field id="co-recipientPhone" label={c.recipientPhone} error={shown.recipientPhone}>
+                <Field id="co-recipientPhone" label={checkoutCopy.recipientPhone} error={shown.recipientPhone}>
                   <input
                     {...input("recipientPhone")}
                     className="field"
@@ -269,58 +269,58 @@ export function CheckoutForm() {
                     inputMode="tel"
                     dir="ltr"
                     placeholder="01X XXXX XXXX"
-                    value={f.recipientPhone}
-                    onChange={(e) => set("recipientPhone", e.target.value)}
+                    value={form.recipientPhone}
+                    onChange={(event) => set("recipientPhone", event.target.value)}
                   />
                 </Field>
               </div>
 
               <div className="grid gap-2">
-                <span className="font-bold">{c.wrap}</span>
+                <span className="font-bold">{checkoutCopy.wrap}</span>
                 <div className="grid gap-3">
-                  {WRAPS.map((w) => (
+                  {WRAPS.map((wrap) => (
                     <ChoiceCard
-                      key={w}
+                      key={wrap}
                       name="wrap"
-                      value={w}
-                      checked={f.wrap === w}
-                      onChange={() => set("wrap", w)}
-                      title={c.wraps[w].title}
-                      sub={c.wraps[w].sub}
-                      icon={<span aria-hidden="true" className={`size-7 shrink-0 rounded-lg border-2 border-ink ${WRAP_SWATCH[w]}`} />}
+                      value={wrap}
+                      checked={form.wrap === wrap}
+                      onChange={() => set("wrap", wrap)}
+                      title={checkoutCopy.wraps[wrap].title}
+                      sub={checkoutCopy.wraps[wrap].sub}
+                      icon={<span aria-hidden="true" className={`size-7 shrink-0 rounded-lg border-2 border-ink ${WRAP_SWATCH[wrap]}`} />}
                     />
                   ))}
                 </div>
-                <span className="text-sm font-bold text-ink-soft">{c.free} ✿</span>
+                <span className="text-sm font-bold text-ink-soft">{checkoutCopy.free} ✿</span>
               </div>
 
-              <Field id="co-note" label={c.note} hint={`${c.noteHint} · ${f.note.length}/${NOTE_MAX}`} optional>
+              <Field id="co-note" label={checkoutCopy.note} hint={`${checkoutCopy.noteHint} · ${form.note.length}/${NOTE_MAX}`} optional>
                 <textarea
                   {...input("note")}
                   className="field min-h-28 resize-y bg-sun-soft/50 font-semibold"
                   maxLength={NOTE_MAX}
-                  placeholder={c.notePlaceholder}
-                  value={f.note}
-                  onChange={(e) => set("note", e.target.value)}
+                  placeholder={checkoutCopy.notePlaceholder}
+                  value={form.note}
+                  onChange={(event) => set("note", event.target.value)}
                 />
               </Field>
 
               <label className="flex w-fit cursor-pointer items-center gap-3 font-bold">
                 <input
                   type="checkbox"
-                  checked={f.hidePrices}
-                  onChange={(e) => set("hidePrices", e.target.checked)}
+                  checked={form.hidePrices}
+                  onChange={(event) => set("hidePrices", event.target.checked)}
                   className="size-6 accent-pink"
                 />
-                {c.hidePrices}
+                {checkoutCopy.hidePrices}
               </label>
             </div>
           )}
         </Step>
 
-        <Step n={3} title={c.s3} color="bg-sky">
+        <Step stepNumber={3} title={checkoutCopy.s3} color="bg-sky">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="co-governorate" label={c.governorate} hint={c.days(DELIVERY[f.governorate].days)} className="sm:col-span-2">
+            <Field id="co-governorate" label={checkoutCopy.governorate} hint={checkoutCopy.days(DELIVERY[form.governorate].days)} className="sm:col-span-2">
               <select
                 {...input("governorate")}
                 className="field appearance-none bg-[length:20px] bg-[position:right_1rem_center] bg-no-repeat rtl:bg-[position:left_1rem_center]"
@@ -328,52 +328,52 @@ export function CheckoutForm() {
                   backgroundImage:
                     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233d1a5b' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
                 }}
-                value={f.governorate}
-                onChange={(e) => set("governorate", e.target.value as Governorate)}
+                value={form.governorate}
+                onChange={(event) => set("governorate", event.target.value as Governorate)}
               >
-                {GOVS.map((g) => (
-                  <option key={g} value={g}>
-                    {c.govs[g]}
+                {GOVS.map((governorate) => (
+                  <option key={governorate} value={governorate}>
+                    {checkoutCopy.govs[governorate]}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field id="co-area" label={c.area} error={shown.area}>
-              <input {...input("area")} className="field" autoComplete="address-level2" value={f.area} onChange={(e) => set("area", e.target.value)} />
+            <Field id="co-area" label={checkoutCopy.area} error={shown.area}>
+              <input {...input("area")} className="field" autoComplete="address-level2" value={form.area} onChange={(event) => set("area", event.target.value)} />
             </Field>
-            <Field id="co-street" label={c.address} error={shown.street}>
-              <input {...input("street")} className="field" autoComplete="address-line1" value={f.street} onChange={(e) => set("street", e.target.value)} />
+            <Field id="co-street" label={checkoutCopy.address} error={shown.street}>
+              <input {...input("street")} className="field" autoComplete="address-line1" value={form.street} onChange={(event) => set("street", event.target.value)} />
             </Field>
-            <Field id="co-apartment" label={c.apartment} optional>
-              <input {...input("apartment")} className="field" autoComplete="address-line2" value={f.apartment} onChange={(e) => set("apartment", e.target.value)} />
+            <Field id="co-apartment" label={checkoutCopy.apartment} optional>
+              <input {...input("apartment")} className="field" autoComplete="address-line2" value={form.apartment} onChange={(event) => set("apartment", event.target.value)} />
             </Field>
-            <Field id="co-date" label={c.date} optional>
+            <Field id="co-date" label={checkoutCopy.date} optional>
               <input
                 {...input("date")}
                 className="field"
                 type="date"
-                min={isoDate(f.governorate === "cairo" || f.governorate === "giza" ? 2 : 3)}
-                value={f.date}
-                onChange={(e) => set("date", e.target.value)}
+                min={isoDate(form.governorate === "cairo" || form.governorate === "giza" ? 2 : 3)}
+                value={form.date}
+                onChange={(event) => set("date", event.target.value)}
               />
             </Field>
-            <Field id="co-notes" label={c.notes} optional className="sm:col-span-2">
-              <input {...input("notes")} className="field" placeholder={c.notesPlaceholder} value={f.notes} onChange={(e) => set("notes", e.target.value)} />
+            <Field id="co-notes" label={checkoutCopy.notes} optional className="sm:col-span-2">
+              <input {...input("notes")} className="field" placeholder={checkoutCopy.notesPlaceholder} value={form.notes} onChange={(event) => set("notes", event.target.value)} />
             </Field>
           </div>
         </Step>
 
-        <Step n={4} title={c.s4} color="bg-lime">
+        <Step stepNumber={4} title={checkoutCopy.s4} color="bg-lime">
           <div className="grid gap-3">
-            {PAYMENTS.map((p) => (
+            {PAYMENTS.map((payment) => (
               <ChoiceCard
-                key={p}
+                key={payment}
                 name="payment"
-                value={p}
-                checked={f.payment === p}
-                onChange={() => set("payment", p)}
-                title={c.pay[p].title}
-                sub={c.pay[p].sub}
+                value={payment}
+                checked={form.payment === payment}
+                onChange={() => set("payment", payment)}
+                title={checkoutCopy.pay[payment].title}
+                sub={checkoutCopy.pay[payment].sub}
                 onClass="bg-lime-soft"
               />
             ))}
@@ -382,27 +382,27 @@ export function CheckoutForm() {
       </div>
 
       <aside className="sticker grid gap-4 bg-paper p-5 lg:sticky lg:top-24">
-        <h2 className="font-head text-2xl font-extrabold">{c.summary}</h2>
+        <h2 className="font-head text-2xl font-extrabold">{checkoutCopy.summary}</h2>
         <ul className="grid max-h-[40vh] gap-3 overflow-y-auto">
-          {lines.map((l) => {
-            const p = productOf(catalog, l.id);
-            if (!p) return null;
-            const price = linePrice(catalog, p, l.plants);
-            const photo = variantImage(p, l.plants);
+          {lines.map((line) => {
+            const product = productOf(catalog, line.id);
+            if (!product) return null;
+            const price = linePrice(catalog, product, line.plants);
+            const photo = variantImage(product, line.plants);
             return (
-              <li key={`${l.id}-${l.plants.join("+")}`} className="flex items-center gap-3">
-                <span className={`relative size-14 shrink-0 overflow-hidden rounded-xl border-2 border-ink ${TINT[p.tint].soft}`}>
-                  <Image src={photo ?? p.image} alt="" fill sizes="56px" className="object-cover" style={{ objectPosition: photo ? "50% 50%" : p.pos }} />
+              <li key={`${line.id}-${line.plants.join("+")}`} className="flex items-center gap-3">
+                <span className={`relative size-14 shrink-0 overflow-hidden rounded-xl border-2 border-ink ${TINT[product.tint].soft}`}>
+                  <Image src={photo ?? product.image} alt="" fill sizes="56px" className="object-cover" style={{ objectPosition: photo ? "50% 50%" : product.pos }} />
                   <span className="absolute -end-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-pink text-[11px] font-extrabold text-white">
-                    {l.qty}
+                    {line.qty}
                   </span>
                 </span>
                 <span className="grid min-w-0 flex-1">
-                  <b className="truncate">{p.name[locale]}</b>
-                  <small className="text-ink-soft">{plantsSummary(catalog, l.plants, locale)}</small>
+                  <b className="truncate">{product.name[locale]}</b>
+                  <small className="text-ink-soft">{plantsSummary(catalog, line.plants, locale)}</small>
                 </span>
                 <span className="font-bold whitespace-nowrap tabular-nums">
-                  <Price full={price.full * l.qty} unit={price.unit * l.qty} locale={locale} />
+                  <Price full={price.full * line.qty} unit={price.unit * line.qty} locale={locale} />
                 </span>
               </li>
             );
@@ -410,17 +410,17 @@ export function CheckoutForm() {
         </ul>
         <dl className="grid gap-2 border-t-[3px] border-dashed border-line pt-4 tabular-nums">
           <div className="flex justify-between">
-            <dt className="text-ink-soft">{c.subtotal}</dt>
+            <dt className="text-ink-soft">{checkoutCopy.subtotal}</dt>
             <dd className="font-bold">{formatPrice(subtotal, locale)}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-ink-soft">
-              {c.delivery} · {c.govs[f.governorate]}
+              {checkoutCopy.delivery} · {checkoutCopy.govs[form.governorate]}
             </dt>
-            <dd className="font-bold">{fee === 0 ? <span className="rounded-full bg-lime px-2">{c.freeDelivery}</span> : formatPrice(fee, locale)}</dd>
+            <dd className="font-bold">{fee === 0 ? <span className="rounded-full bg-lime px-2">{checkoutCopy.freeDelivery}</span> : formatPrice(fee, locale)}</dd>
           </div>
           <div className="mt-1 flex justify-between text-2xl font-extrabold">
-            <dt>{c.total}</dt>
+            <dt>{checkoutCopy.total}</dt>
             <dd>{formatPrice(total, locale)}</dd>
           </div>
         </dl>
@@ -431,15 +431,15 @@ export function CheckoutForm() {
         )}
         {tried && Object.keys(errors).length > 0 && (
           <p role="alert" className="rounded-2xl bg-pink-soft px-4 py-2 text-sm font-bold">
-            {c.fixErrors}
+            {checkoutCopy.fixErrors}
           </p>
         )}
         <button type="submit" disabled={pending} className="btn btn-pink w-full text-xl">
-          {pending ? c.placing : c.place}
+          {pending ? checkoutCopy.placing : checkoutCopy.place}
         </button>
         <Link href={`/${locale}#shop`} className="inline-flex items-center justify-center gap-1.5 text-sm font-bold text-ink-soft hover:text-pink">
           <BackIcon width={16} height={16} className="rtl:-scale-x-100" />
-          {c.back}
+          {checkoutCopy.back}
         </Link>
       </aside>
     </form>

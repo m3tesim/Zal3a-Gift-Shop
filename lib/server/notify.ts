@@ -19,14 +19,14 @@ export async function notifyOrderStatus(order: Order, status: OrderStatus) {
   await sendEmail({ to: order.contact.email, subject, html, kind: "order", orderNumber: order.number });
 }
 
-export async function sendVerifyEmail(c: Customer, locale: Locale = c.locale) {
-  const token = createCustomerToken(c.id, "verify", 48);
-  const { subject, html } = verifyEmail(locale, c.name, `${siteUrl()}/api/account/verify?t=${token}&l=${locale}`);
-  return sendEmail({ to: c.email, subject, html, kind: "account" });
+export async function sendVerifyEmail(customer: Customer, locale: Locale = customer.locale) {
+  const token = createCustomerToken(customer.id, "verify", 48);
+  const { subject, html } = verifyEmail(locale, customer.name, `${siteUrl()}/api/account/verify?t=${token}&l=${locale}`);
+  return sendEmail({ to: customer.email, subject, html, kind: "account" });
 }
 
-export async function sendResetEmail(c: Customer, locale: Locale = c.locale) {
-  const token = createCustomerToken(c.id, "reset", 1);
+export async function sendResetEmail(customer: Customer, locale: Locale = customer.locale) {
+  const token = createCustomerToken(customer.id, "reset", 1);
   const { subject, html } = resetEmail(locale, `${siteUrl()}/${locale}/account/reset?t=${token}`);
-  return sendEmail({ to: c.email, subject, html, kind: "account" });
+  return sendEmail({ to: customer.email, subject, html, kind: "account" });
 }

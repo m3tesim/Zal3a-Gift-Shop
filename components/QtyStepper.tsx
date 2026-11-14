@@ -12,7 +12,7 @@ export function QtyStepper({
   size = "md",
 }: {
   value: number;
-  onChange: (n: number) => void;
+  onChange: (value: number) => void;
   min?: number;
   max?: number;
   labels: { group: string; fewer: string; more: string };

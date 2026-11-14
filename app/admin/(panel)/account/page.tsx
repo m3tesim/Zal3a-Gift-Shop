@@ -16,13 +16,13 @@ export default async function AccountPage() {
       </header>
       <Panel title="Admins" sub="Everyone here can manage the shop.">
         <ul className="grid gap-2">
-          {users.map((u) => (
-            <li key={u.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-line px-3 py-2">
+          {users.map((user) => (
+            <li key={user.id} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-line px-3 py-2">
               <span>
-                <b>{u.email}</b>
-                {u.id === me.id && <span className="ms-2 rounded-full bg-sun px-2 py-0.5 text-xs font-extrabold">you</span>}
+                <b>{user.email}</b>
+                {user.id === me.id && <span className="ms-2 rounded-full bg-sun px-2 py-0.5 text-xs font-extrabold">you</span>}
               </span>
-              {u.id !== me.id && <RemoveAdmin id={u.id} email={u.email} />}
+              {user.id !== me.id && <RemoveAdmin id={user.id} email={user.email} />}
             </li>
           ))}
         </ul>

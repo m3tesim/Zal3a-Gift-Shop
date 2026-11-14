@@ -3,7 +3,7 @@ import { CheckIcon, PlantIcon } from "../icons";
 
 /** Playful two-panel layout for sign in / register / password pages. */
 export function AuthShell({ locale, title, children }: { locale: Locale; title: string; children: React.ReactNode }) {
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
   return (
     <section className="mx-auto grid max-w-5xl items-start gap-8 px-4 py-10 md:grid-cols-[1fr_1.1fr]">
       <div className="relative hidden overflow-hidden rounded-[36px] border-[3px] border-ink bg-sun-soft p-8 shadow-pop md:grid md:gap-6">
@@ -12,14 +12,14 @@ export function AuthShell({ locale, title, children }: { locale: Locale; title: 
           <PlantIcon icon="echeveria" className="size-20 animate-wiggle [animation-delay:-.8s]" />
           <PlantIcon icon="haworthia" className="size-20 animate-wiggle [animation-delay:-1.6s]" />
         </div>
-        <h2 className="font-head text-3xl font-extrabold">{t.account.registerTitle}</h2>
+        <h2 className="font-head text-3xl font-extrabold">{dictionary.account.registerTitle}</h2>
         <ul className="grid gap-3">
-          {t.account.perks.map((p) => (
-            <li key={p} className="flex items-center gap-3 font-bold">
+          {dictionary.account.perks.map((perk) => (
+            <li key={perk} className="flex items-center gap-3 font-bold">
               <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink bg-lime">
                 <CheckIcon width={14} height={14} />
               </span>
-              {p}
+              {perk}
             </li>
           ))}
         </ul>

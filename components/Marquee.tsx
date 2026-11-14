@@ -4,12 +4,12 @@ export function Marquee({ locale }: { locale: Locale }) {
   const items = [...getDict(locale).marquee, ...getDict(locale).marquee]; // long enough for wide screens
   const row = (hidden: boolean) => (
     <ul className="flex shrink-0 items-center" aria-hidden={hidden || undefined}>
-      {items.map((m, i) => (
-        <li key={i} dir={dirOf(locale)} className="flex items-center gap-4 px-4 whitespace-nowrap">
-          <span className={i % 2 ? "text-pink" : "text-lilac"} aria-hidden="true">
+      {items.map((message, index) => (
+        <li key={index} dir={dirOf(locale)} className="flex items-center gap-4 px-4 whitespace-nowrap">
+          <span className={index % 2 ? "text-pink" : "text-lilac"} aria-hidden="true">
             ✿
           </span>
-          {m}
+          {message}
         </li>
       ))}
     </ul>

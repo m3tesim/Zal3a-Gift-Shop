@@ -5,8 +5,8 @@ import { useShop } from "@/lib/store";
 import { PlantIcon } from "./icons";
 
 export function Toast() {
-  const toast = useShop((s) => s.toast);
-  const hideToast = useShop((s) => s.hideToast);
+  const toast = useShop((state) => state.toast);
+  const hideToast = useShop((state) => state.hideToast);
 
   useEffect(() => {
     if (!toast) return;

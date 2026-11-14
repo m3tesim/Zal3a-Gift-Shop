@@ -6,7 +6,7 @@ export const metadata = { title: "Customers" };
 
 export default function CustomersPage() {
   const customers = listCustomers();
-  const audience = customers.filter((c) => c.marketing && c.emailVerified).length;
+  const audience = customers.filter((customer) => customer.marketing && customer.emailVerified).length;
   return (
     <div className="grid gap-6">
       <header>
@@ -32,35 +32,35 @@ export default function CustomersPage() {
               </tr>
             </thead>
             <tbody>
-              {customers.map((c) => (
-                <tr key={c.id} className="border-t-2 border-line [&>td]:px-4 [&>td]:py-3">
+              {customers.map((customer) => (
+                <tr key={customer.id} className="border-t-2 border-line [&>td]:px-4 [&>td]:py-3">
                   <td className="font-bold">
-                    {c.name}
-                    <span className="ms-2 text-xs font-normal text-ink-soft">{c.locale === "ar" ? "عربي" : "EN"}</span>
+                    {customer.name}
+                    <span className="ms-2 text-xs font-normal text-ink-soft">{customer.locale === "ar" ? "عربي" : "EN"}</span>
                   </td>
                   <td>
-                    <a href={`mailto:${c.email}`} className="underline-offset-4 hover:underline">
-                      {c.email}
+                    <a href={`mailto:${customer.email}`} className="underline-offset-4 hover:underline">
+                      {customer.email}
                     </a>
-                    {c.emailVerified ? (
+                    {customer.emailVerified ? (
                       <span className="ms-2 rounded-full bg-lime-soft px-2 py-0.5 text-xs font-extrabold">✓ confirmed</span>
                     ) : (
                       <span className="ms-2 rounded-full bg-line px-2 py-0.5 text-xs font-bold">not confirmed</span>
                     )}
                   </td>
-                  <td className="tabular-nums">{c.phone || "—"}</td>
-                  <td>{c.marketing ? "Yes" : "No"}</td>
+                  <td className="tabular-nums">{customer.phone || "—"}</td>
+                  <td>{customer.marketing ? "Yes" : "No"}</td>
                   <td>
-                    {c.orders > 0 ? (
-                      <Link href={`/admin/orders?q=${encodeURIComponent(c.email)}`} className="font-bold underline underline-offset-4">
-                        {c.orders}
+                    {customer.orders > 0 ? (
+                      <Link href={`/admin/orders?q=${encodeURIComponent(customer.email)}`} className="font-bold underline underline-offset-4">
+                        {customer.orders}
                       </Link>
                     ) : (
                       0
                     )}
                   </td>
-                  <td className="tabular-nums">{formatPrice(c.spent, "en")}</td>
-                  <td className="text-sm text-ink-soft">{new Date(c.createdAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}</td>
+                  <td className="tabular-nums">{formatPrice(customer.spent, "en")}</td>
+                  <td className="text-sm text-ink-soft">{new Date(customer.createdAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}</td>
                 </tr>
               ))}
             </tbody>

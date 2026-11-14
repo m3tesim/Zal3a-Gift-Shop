@@ -20,9 +20,9 @@ export function PlantCare({
   const water = careOf(catalog, "water", plant.water);
   const groups = showTags
     ? [
-        { label: labels.bestFor, tags: tagsOf(catalog, "who").filter((t) => plant.recipients.includes(t.id)), tone: "bg-pink-soft" },
-        { label: labels.vibe, tags: tagsOf(catalog, "vibe").filter((t) => plant.vibes.includes(t.id)), tone: "bg-sky-soft" },
-      ].filter((g) => g.tags.length)
+        { label: labels.bestFor, tags: tagsOf(catalog, "who").filter((tag) => plant.recipients.includes(tag.id)), tone: "bg-pink-soft" },
+        { label: labels.vibe, tags: tagsOf(catalog, "vibe").filter((tag) => plant.vibes.includes(tag.id)), tone: "bg-sky-soft" },
+      ].filter((group) => group.tags.length)
     : [];
 
   return (
@@ -33,13 +33,13 @@ export function PlantCare({
           {water && <CareDots kind="water" level={water.level} label={labels.water} hint={water.label[locale]} />}
         </div>
       )}
-      {groups.map((g) => (
-        <div key={g.label} className="grid gap-1.5">
-          <span className="text-xs font-extrabold tracking-wider text-ink-soft uppercase rtl:tracking-normal">{g.label}</span>
+      {groups.map((group) => (
+        <div key={group.label} className="grid gap-1.5">
+          <span className="text-xs font-extrabold tracking-wider text-ink-soft uppercase rtl:tracking-normal">{group.label}</span>
           <ul className="flex flex-wrap gap-1.5">
-            {g.tags.map((t) => (
-              <li key={t.id} className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-sm font-bold ${g.tone}`}>
-                <span aria-hidden="true">{t.emoji}</span> {t.label[locale]}
+            {group.tags.map((tag) => (
+              <li key={tag.id} className={`rounded-full border-2 border-ink px-2.5 py-0.5 text-sm font-bold ${group.tone}`}>
+                <span aria-hidden="true">{tag.emoji}</span> {tag.label[locale]}
               </li>
             ))}
           </ul>

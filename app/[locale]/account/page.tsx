@@ -21,7 +21,7 @@ export default async function AccountPage({ params, searchParams }: Props) {
   const me = await currentCustomer();
   if (!me) redirect(`/${locale}/account/login?next=/${locale}/account`);
   const { verified } = await searchParams;
-  const t = getDict(locale);
+  const dictionary = getDict(locale);
   const orders = customerOrders(me.id);
   const date = (iso: string) => new Date(iso).toLocaleDateString(locale === "ar" ? "ar-EG-u-nu-latn" : "en-GB", { day: "numeric", month: "short", year: "numeric" });
 
@@ -29,40 +29,40 @@ export default async function AccountPage({ params, searchParams }: Props) {
     <section className="mx-auto grid max-w-6xl gap-6 px-4 py-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <span className="eyebrow">{t.account.title}</span>
-          <h1 className="mt-2 font-head text-[clamp(2.4rem,6vw,3.6rem)] font-extrabold">{t.account.hello(me.name.split(" ")[0])}</h1>
+          <span className="eyebrow">{dictionary.account.title}</span>
+          <h1 className="mt-2 font-head text-[clamp(2.4rem,6vw,3.6rem)] font-extrabold">{dictionary.account.hello(me.name.split(" ")[0])}</h1>
         </div>
         <SignOutButton />
       </header>
-      {verified && <p className="rounded-3xl border-[3px] border-ink bg-lime-soft px-5 py-3 font-bold">✓ {t.account.verified}</p>}
+      {verified && <p className="rounded-3xl border-[3px] border-ink bg-lime-soft px-5 py-3 font-bold">✓ {dictionary.account.verified}</p>}
       {!me.emailVerified && !verified && <VerifyBanner />}
 
       <div className="grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="grid gap-3">
-          <h2 className="font-head text-2xl font-extrabold">{t.account.orders}</h2>
+          <h2 className="font-head text-2xl font-extrabold">{dictionary.account.orders}</h2>
           {orders.length === 0 ? (
             <div className="sticker grid justify-items-start gap-3 p-6">
-              <p className="font-bold">{t.account.noOrders}</p>
+              <p className="font-bold">{dictionary.account.noOrders}</p>
               <Link href={`/${locale}#shop`} className="btn btn-pink">
-                {t.checkout.emptyCta}
+                {dictionary.checkout.emptyCta}
               </Link>
             </div>
           ) : (
             <ul className="grid gap-3">
-              {orders.map((o) => (
-                <li key={o.number}>
+              {orders.map((order) => (
+                <li key={order.number}>
                   <Link
-                    href={`/${locale}/account/orders/${o.number}`}
+                    href={`/${locale}/account/orders/${order.number}`}
                     className="sticker flex flex-wrap items-center gap-x-5 gap-y-2 p-4 transition-transform hover:-translate-y-0.5 hover:-rotate-[0.5deg]"
                   >
                     <span dir="ltr" className="font-logo text-xl">
-                      {o.number}
+                      {order.number}
                     </span>
-                    <span className={`rounded-full border-2 border-ink px-3 py-0.5 text-sm font-extrabold ${STATUS_TONE[o.status]}`}>{t.status[o.status]}</span>
+                    <span className={`rounded-full border-2 border-ink px-3 py-0.5 text-sm font-extrabold ${STATUS_TONE[order.status]}`}>{dictionary.status[order.status]}</span>
                     <span className="min-w-0 flex-1 truncate text-sm text-ink-soft">
-                      {t.account.orderPlaced(date(o.createdAt))} · {o.items.map((i) => `${i.qty}× ${i.name[locale]}`).join(", ")}
+                      {dictionary.account.orderPlaced(date(order.createdAt))} · {order.items.map((item) => `${item.qty}× ${item.name[locale]}`).join(", ")}
                     </span>
-                    <b className="tabular-nums">{formatPrice(o.total, locale)}</b>
+                    <b className="tabular-nums">{formatPrice(order.total, locale)}</b>
                   </Link>
                 </li>
               ))}
@@ -70,7 +70,7 @@ export default async function AccountPage({ params, searchParams }: Props) {
           )}
         </div>
         <div className="sticker grid gap-4 p-5">
-          <h2 className="font-head text-2xl font-extrabold">{t.account.details}</h2>
+          <h2 className="font-head text-2xl font-extrabold">{dictionary.account.details}</h2>
           <ProfileForm initial={{ name: me.name, email: me.email, phone: me.phone, marketing: me.marketing }} />
         </div>
       </div>

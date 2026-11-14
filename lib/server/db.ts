@@ -168,15 +168,15 @@ CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 function upgradeToV2(db: DatabaseSync) {
   db.exec(V2);
   const tag = db.prepare("INSERT INTO tags (kind, id, label, emoji, line, sort) VALUES (?, ?, ?, ?, ?, ?)");
-  DEFAULT_TAGS.forEach((t, i) => tag.run(t.kind, t.id, JSON.stringify(t.label), t.emoji, JSON.stringify(t.line), i + 1));
+  DEFAULT_TAGS.forEach((defaultTag, index) => tag.run(defaultTag.kind, defaultTag.id, JSON.stringify(defaultTag.label), defaultTag.emoji, JSON.stringify(defaultTag.line), index + 1));
   const care = db.prepare("INSERT INTO care_options (kind, id, label, level, sort) VALUES (?, ?, ?, ?, ?)");
-  DEFAULT_CARE.forEach((c, i) => care.run(c.kind, c.id, JSON.stringify(c.label), c.level, i + 1));
+  DEFAULT_CARE.forEach((defaultCare, index) => care.run(defaultCare.kind, defaultCare.id, JSON.stringify(defaultCare.label), defaultCare.level, index + 1));
 
   // Existing plants: 0–3 care levels become options, and the seeded ones get starter vibes.
   const plants = db.prepare("SELECT id, sun, water FROM plants").all() as { id: string; sun: number; water: number }[];
   const upd = db.prepare("UPDATE plants SET sun_option = ?, water_option = ?, vibes = ? WHERE id = ?");
-  for (const p of plants) {
-    upd.run(LEVEL_TO_OPTION.sun[p.sun] ?? null, LEVEL_TO_OPTION.water[p.water] ?? null, JSON.stringify(DEFAULT_PLANT_VIBES[p.id] ?? []), p.id);
+  for (const plant of plants) {
+    upd.run(LEVEL_TO_OPTION.sun[plant.sun] ?? null, LEVEL_TO_OPTION.water[plant.water] ?? null, JSON.stringify(DEFAULT_PLANT_VIBES[plant.id] ?? []), plant.id);
   }
   db.exec("ALTER TABLE plants DROP COLUMN sun; ALTER TABLE plants DROP COLUMN water;");
 
@@ -198,51 +198,51 @@ function migrate(db: DatabaseSync) {
   db.exec("BEGIN IMMEDIATE");
   try {
     // Re-read inside the lock: another process may have just migrated.
-    for (let v = version(); v < MIGRATIONS.length; v++) {
-      MIGRATIONS[v](db);
-      db.exec(`PRAGMA user_version = ${v + 1}`);
+    for (let schemaVersion = version(); schemaVersion < MIGRATIONS.length; schemaVersion++) {
+      MIGRATIONS[schemaVersion](db);
+      db.exec(`PRAGMA user_version = ${schemaVersion + 1}`);
     }
     db.exec("COMMIT");
-  } catch (e) {
+  } catch (error) {
     db.exec("ROLLBACK");
-    throw e;
+    throw error;
   }
 }
 
-const g = globalThis as unknown as { __zal3aDb?: DatabaseSync; __zal3aDbVersion?: number };
+const globalStore = globalThis as unknown as { __zal3aDb?: DatabaseSync; __zal3aDbVersion?: number };
 
 /** One shared connection (kept on globalThis so dev hot-reloads don't open more). */
 export function getDb() {
-  if (g.__zal3aDb && g.__zal3aDbVersion === MIGRATIONS.length) return g.__zal3aDb;
-  let db = g.__zal3aDb;
+  if (globalStore.__zal3aDb && globalStore.__zal3aDbVersion === MIGRATIONS.length) return globalStore.__zal3aDb;
+  let db = globalStore.__zal3aDb;
   if (!db) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
     db = new DatabaseSync(path.join(DATA_DIR, "zal3a.db"));
     db.exec("PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA foreign_keys = ON;");
   }
   migrate(db);
-  g.__zal3aDb = db;
-  g.__zal3aDbVersion = MIGRATIONS.length;
+  globalStore.__zal3aDb = db;
+  globalStore.__zal3aDbVersion = MIGRATIONS.length;
   return db;
 }
 
 /** Run fn inside a write transaction. */
-export function tx<T>(fn: () => T): T {
+export function transaction<T>(work: () => T): T {
   const db = getDb();
   db.exec("BEGIN IMMEDIATE");
   try {
-    const out = fn();
+    const out = work();
     db.exec("COMMIT");
     return out;
-  } catch (e) {
+  } catch (error) {
     db.exec("ROLLBACK");
-    throw e;
+    throw error;
   }
 }
 
-export const json = <T>(s: unknown, fallback: T): T => {
+export const json = <T>(raw: unknown, fallback: T): T => {
   try {
-    return typeof s === "string" ? (JSON.parse(s) as T) : fallback;
+    return typeof raw === "string" ? (JSON.parse(raw) as T) : fallback;
   } catch {
     return fallback;
   }

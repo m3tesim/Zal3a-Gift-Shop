@@ -16,8 +16,8 @@ export async function placeOrderAction(input: CheckoutInput): Promise<PlaceOrder
     const order = result.order;
     after(() => notifyOrderStatus(order, "new"));
     return { ok: true, order: { ...order, trackToken: trackingToken(order.number) } };
-  } catch (e) {
-    console.error("placeOrder failed", e);
+  } catch (error) {
+    console.error("placeOrder failed", error);
     return { ok: false, error: "invalid" };
   }
 }

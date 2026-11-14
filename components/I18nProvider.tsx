@@ -16,5 +16,5 @@ export function I18nProvider({ locale, children }: { locale: Locale; children: R
 
 export function useI18n() {
   const locale = useContext(LocaleContext);
-  return { locale, t: getDict(locale), dir: dirOf(locale), rtl: locale === "ar" };
+  return { locale, dictionary: getDict(locale), dir: dirOf(locale), rtl: locale === "ar" };
 }

@@ -14,13 +14,13 @@ const COLORS = ["bg-pink", "bg-sun", "bg-sky", "bg-lime", "bg-lilac", "bg-orange
 function Confetti() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-30 overflow-hidden">
-      {Array.from({ length: 36 }, (_, i) => (
+      {Array.from({ length: 36 }, (_piece, index) => (
         <span
-          key={i}
-          className={`absolute top-0 block border-2 border-ink ${COLORS[i % COLORS.length]} ${i % 3 ? "h-4 w-2.5 rounded-sm" : "size-3 rounded-full"}`}
+          key={index}
+          className={`absolute top-0 block border-2 border-ink ${COLORS[index % COLORS.length]} ${index % 3 ? "h-4 w-2.5 rounded-sm" : "size-3 rounded-full"}`}
           style={{
-            left: `${(i * 37) % 100}%`,
-            animation: `confetti ${2.6 + (i % 5) * 0.5}s ${(i % 7) * 0.18}s cubic-bezier(.3,.6,.6,1) both`,
+            left: `${(index * 37) % 100}%`,
+            animation: `confetti ${2.6 + (index % 5) * 0.5}s ${(index % 7) * 0.18}s cubic-bezier(.3,.6,.6,1) both`,
           }}
         />
       ))}
@@ -28,41 +28,41 @@ function Confetti() {
   );
 }
 
-const plantNames = (item: Order["items"][number], l: Locale) => item.plants.map((p) => p.name[l]).join(" + ");
+const plantNames = (item: Order["items"][number], locale: Locale) => item.plants.map((plant) => plant.name[locale]).join(" + ");
 
 // The message is written in the order's language so the shop sees what the customer saw.
-function whatsappText(o: Order) {
-  const t = getDict(o.locale);
-  const L = o.locale;
+function whatsappText(order: Order) {
+  const dictionary = getDict(order.locale);
+  const locale = order.locale;
   const rows = [
-    t.thanks.msgIntro(o.number),
+    dictionary.thanks.msgIntro(order.number),
     "",
-    ...o.items.map((i) => `• ${i.qty} × ${i.name[L]} (${plantNames(i, L)}) = ${formatPrice(i.unit * i.qty, L)}`),
-    `${t.checkout.delivery}: ${o.delivery ? formatPrice(o.delivery, L) : t.checkout.freeDelivery}`,
-    `${t.checkout.total}: ${formatPrice(o.total, L)}`,
+    ...order.items.map((item) => `• ${item.qty} × ${item.name[locale]} (${plantNames(item, locale)}) = ${formatPrice(item.unit * item.qty, locale)}`),
+    `${dictionary.checkout.delivery}: ${order.delivery ? formatPrice(order.delivery, locale) : dictionary.checkout.freeDelivery}`,
+    `${dictionary.checkout.total}: ${formatPrice(order.total, locale)}`,
     "",
-    `${t.thanks.from}: ${o.contact.name} · ${o.contact.phone}`,
-    `${t.thanks.to}: ${t.checkout.govs[o.address.governorate]}, ${o.address.area}, ${o.address.street}${o.address.apartment ? `, ${o.address.apartment}` : ""}`,
+    `${dictionary.thanks.from}: ${order.contact.name} · ${order.contact.phone}`,
+    `${dictionary.thanks.to}: ${dictionary.checkout.govs[order.address.governorate]}, ${order.address.area}, ${order.address.street}${order.address.apartment ? `, ${order.address.apartment}` : ""}`,
   ];
-  if (o.address.date) rows.push(`${t.checkout.date}: ${o.address.date}`);
-  if (o.address.notes) rows.push(`${t.checkout.notes}: ${o.address.notes}`);
-  if (o.gift) {
+  if (order.address.date) rows.push(`${dictionary.checkout.date}: ${order.address.date}`);
+  if (order.address.notes) rows.push(`${dictionary.checkout.notes}: ${order.address.notes}`);
+  if (order.gift) {
     rows.push(
       "",
-      `${t.thanks.gift}: ${o.gift.name} · ${o.gift.phone}`,
-      `${t.thanks.wrap}: ${t.checkout.wraps[o.gift.wrap].title}`,
+      `${dictionary.thanks.gift}: ${order.gift.name} · ${order.gift.phone}`,
+      `${dictionary.thanks.wrap}: ${dictionary.checkout.wraps[order.gift.wrap].title}`,
     );
-    if (o.gift.note) rows.push(`${t.checkout.note}: "${o.gift.note}"`);
-    if (o.gift.hidePrices) rows.push(t.checkout.hidePrices);
+    if (order.gift.note) rows.push(`${dictionary.checkout.note}: "${order.gift.note}"`);
+    if (order.gift.hidePrices) rows.push(dictionary.checkout.hidePrices);
   }
-  rows.push(`${t.thanks.payment}: ${t.checkout.pay[o.payment].title}`);
+  rows.push(`${dictionary.thanks.payment}: ${dictionary.checkout.pay[order.payment].title}`);
   return rows.join("\n");
 }
 
 export function ThankYou() {
-  const { locale, t } = useI18n();
-  const hydrated = useShop((s) => s.hydrated);
-  const order = useShop((s) => s.lastOrder);
+  const { locale, dictionary } = useI18n();
+  const hydrated = useShop((state) => state.hydrated);
+  const order = useShop((state) => state.lastOrder);
 
   if (!hydrated) return <div className="min-h-[60vh]" />;
 
@@ -70,15 +70,15 @@ export function ThankYou() {
     return (
       <div className="sticker mx-auto mt-10 grid max-w-md justify-items-center gap-4 p-10 text-center">
         <PlantIcon icon="pot" className="size-24" />
-        <p className="font-head text-2xl">{t.thanks.none}</p>
+        <p className="font-head text-2xl">{dictionary.thanks.none}</p>
         <Link href={`/${locale}#shop`} className="btn btn-pink">
-          {t.thanks.keep}
+          {dictionary.thanks.keep}
         </Link>
       </div>
     );
   }
 
-  const wa = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappText(order))}`;
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappText(order))}`;
 
   return (
     <>
@@ -86,28 +86,28 @@ export function ThankYou() {
       <div className="mx-auto grid max-w-3xl gap-6">
         <div className="sticker relative grid animate-rise justify-items-center gap-4 bg-sun-soft p-8 text-center sm:p-12">
           <PlantIcon icon="cactus" className="size-28 animate-wiggle" />
-          <span className="eyebrow">{t.thanks.eyebrow}</span>
-          <h1 className="font-head text-[clamp(2.4rem,6vw,4rem)] font-extrabold">{t.thanks.title(order.contact.name.split(" ")[0])}</h1>
-          <p className="text-lg text-ink-soft">{t.thanks.sub}</p>
+          <span className="eyebrow">{dictionary.thanks.eyebrow}</span>
+          <h1 className="font-head text-[clamp(2.4rem,6vw,4rem)] font-extrabold">{dictionary.thanks.title(order.contact.name.split(" ")[0])}</h1>
+          <p className="text-lg text-ink-soft">{dictionary.thanks.sub}</p>
           <p className="grid gap-1">
-            <span className="text-sm font-bold text-ink-soft">{t.thanks.number}</span>
+            <span className="text-sm font-bold text-ink-soft">{dictionary.thanks.number}</span>
             <span dir="ltr" className="-rotate-2 rounded-2xl border-[3px] border-ink bg-paper px-5 py-2 font-logo text-3xl shadow-pop-sm">
               {order.number}
             </span>
           </p>
-          <p className="mt-2 max-w-[44ch] font-bold">{t.thanks.whatsappHint}</p>
+          <p className="mt-2 max-w-[44ch] font-bold">{dictionary.thanks.whatsappHint}</p>
           <div className="flex flex-wrap justify-center gap-3">
-            <a href={wa} target="_blank" rel="noopener noreferrer" className="btn bg-lime text-ink">
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn bg-lime text-ink">
               <SocialIcon id="whatsapp" />
-              {t.thanks.whatsapp}
+              {dictionary.thanks.whatsapp}
             </a>
             {order.trackToken && (
               <Link href={`/${locale}/track?order=${order.number}&t=${order.trackToken}`} className="btn btn-sun">
-                {t.thanks.track}
+                {dictionary.thanks.track}
               </Link>
             )}
             <Link href={`/${locale}`} className="btn btn-white">
-              {t.thanks.keep}
+              {dictionary.thanks.keep}
             </Link>
           </div>
         </div>
@@ -115,58 +115,58 @@ export function ThankYou() {
         {!order.customerId && (
           <div className="sticker flex flex-wrap items-center justify-between gap-4 bg-lilac-soft p-5">
             <div className="grid gap-1">
-              <b className="font-head text-xl">{t.thanks.joinTitle}</b>
-              <p className="text-ink-soft">{t.thanks.joinText}</p>
+              <b className="font-head text-xl">{dictionary.thanks.joinTitle}</b>
+              <p className="text-ink-soft">{dictionary.thanks.joinText}</p>
             </div>
             <Link href={`/${locale}/account/register`} className="btn btn-pink">
-              {t.thanks.join}
+              {dictionary.thanks.join}
             </Link>
           </div>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sticker grid content-start gap-1 bg-sky-soft p-5">
-            <b className="font-head text-lg">{t.thanks.to}</b>
+            <b className="font-head text-lg">{dictionary.thanks.to}</b>
             <p>{order.gift ? order.gift.name : order.contact.name}</p>
             <p className="text-ink-soft">
               {order.address.street}
               {order.address.apartment && `, ${order.address.apartment}`}
               <br />
-              {order.address.area}, {t.checkout.govs[order.address.governorate]}
+              {order.address.area}, {dictionary.checkout.govs[order.address.governorate]}
             </p>
           </div>
           <div className="sticker grid content-start gap-1 bg-pink-soft p-5">
             {order.gift && (
               <>
-                <b className="font-head text-lg">{t.thanks.gift}</b>
+                <b className="font-head text-lg">{dictionary.thanks.gift}</b>
                 <p>
-                  {order.gift.name} · {t.checkout.wraps[order.gift.wrap].title}
+                  {order.gift.name} · {dictionary.checkout.wraps[order.gift.wrap].title}
                 </p>
                 {order.gift.note && <p className="mb-2 text-ink-soft italic">“{order.gift.note}”</p>}
               </>
             )}
-            <b className="font-head text-lg">{t.thanks.payment}</b>
-            <p>{t.checkout.pay[order.payment].title}</p>
+            <b className="font-head text-lg">{dictionary.thanks.payment}</b>
+            <p>{dictionary.checkout.pay[order.payment].title}</p>
           </div>
         </div>
 
         <div className="sticker grid gap-3 p-5">
           <ul className="grid gap-2">
-            {order.items.map((i, k) => (
-              <li key={k} className="flex justify-between gap-3">
+            {order.items.map((item, itemIndex) => (
+              <li key={itemIndex} className="flex justify-between gap-3">
                 <span>
-                  {i.qty} × {i.name[locale]} <small className="text-ink-soft">({plantNames(i, locale)})</small>
+                  {item.qty} × {item.name[locale]} <small className="text-ink-soft">({plantNames(item, locale)})</small>
                 </span>
-                <span className="font-bold tabular-nums">{formatPrice(i.unit * i.qty, locale)}</span>
+                <span className="font-bold tabular-nums">{formatPrice(item.unit * item.qty, locale)}</span>
               </li>
             ))}
           </ul>
           <div className="flex justify-between border-t-[3px] border-dashed border-line pt-3 tabular-nums">
-            <span className="text-ink-soft">{t.checkout.delivery}</span>
-            <span className="font-bold">{order.delivery ? formatPrice(order.delivery, locale) : t.checkout.freeDelivery}</span>
+            <span className="text-ink-soft">{dictionary.checkout.delivery}</span>
+            <span className="font-bold">{order.delivery ? formatPrice(order.delivery, locale) : dictionary.checkout.freeDelivery}</span>
           </div>
           <div className="flex justify-between text-xl font-extrabold tabular-nums">
-            <span>{t.checkout.total}</span>
+            <span>{dictionary.checkout.total}</span>
             <span>{formatPrice(order.total, locale)}</span>
           </div>
         </div>

@@ -15,7 +15,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const catalog = readCatalog();
-  const featured = catalog.products.find((p) => p.featured) ?? catalog.products[0];
+  const featured = catalog.products.find((product) => product.featured) ?? catalog.products[0];
   const heroPrice = featured ? linePrice(catalog, featured, defaultPlantsFor(catalog, featured)).unit : 0;
 
   return (
