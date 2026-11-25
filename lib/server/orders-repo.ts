@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { getDb, json, setting, transaction } from "./db";
-import type { Customer } from "./customers";
+import { findCustomerByEmail, type Customer } from "./customers";
 import { readCatalog } from "./catalog-repo";
 import { MAX_QTY, allowsPlants, linePrice, plantOf, productOf, soldOut } from "@/lib/catalog";
 import { deliveryFee } from "@/lib/site";
@@ -29,7 +29,6 @@ const CheckoutSchema = z.object({
     area: required(120),
     street: required(200),
     apartment: text(120),
-    date: z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/),
     notes: text(300),
   }),
   payment: z.enum(PAYMENTS),
@@ -41,6 +40,7 @@ export function placeOrder(raw: unknown, customer: Customer | null = null): Plac
   if (!parsed.success) return { ok: false, error: "invalid" };
   const input = parsed.data;
   const locale = input.locale;
+  const owner = customer ?? verifiedOwnerOf(input.contact.email);
 
   return transaction((): PlaceOrderResult => {
     const catalog = readCatalog();
@@ -84,7 +84,7 @@ export function placeOrder(raw: unknown, customer: Customer | null = null): Plac
     const delivery = deliveryFee(input.address.governorate, subtotal);
     const order: Order = {
       number: "",
-      customerId: customer?.id ?? null,
+      customerId: owner?.id ?? null,
       createdAt: new Date().toISOString(),
       status: "new",
       locale: locale,
@@ -141,6 +141,19 @@ export const orderEvents = (number: string): OrderEvent[] =>
     status: statusEvent.status,
     at: statusEvent.at,
   }));
+
+/** A signed-out checkout still belongs to the account whose verified email it used. */
+function verifiedOwnerOf(email: string) {
+  const owner = email ? findCustomerByEmail(email) : null;
+  return owner?.emailVerified ? owner : null;
+}
+
+/** Once a customer proves they own an email, they get the orders placed with it before signing up. */
+export function claimGuestOrders(customerId: number, email: string) {
+  getDb()
+    .prepare("UPDATE orders SET customer_id = ?, data = json_set(data, '$.customerId', ?) WHERE customer_id IS NULL AND lower(trim(email)) = ?")
+    .run(customerId, customerId, email.trim().toLowerCase());
+}
 
 export function customerOrders(customerId: number) {
   return (getDb().prepare("SELECT number, status, data FROM orders WHERE customer_id = ? ORDER BY id DESC").all(customerId) as Row[]).map(toOrder);

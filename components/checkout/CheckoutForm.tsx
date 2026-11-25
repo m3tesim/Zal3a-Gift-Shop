@@ -40,7 +40,6 @@ type Form = {
   area: string;
   street: string;
   apartment: string;
-  date: string;
   notes: string;
   payment: PaymentKey;
 };
@@ -59,16 +58,9 @@ const INITIAL: Form = {
   area: "",
   street: "",
   apartment: "",
-  date: "",
   notes: "",
   payment: "cod",
 };
-
-function isoDate(daysFromNow: number) {
-  const today = new Date();
-  today.setDate(today.getDate() + daysFromNow);
-  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-}
 
 function Step({ stepNumber, title, color, children }: { stepNumber: number; title: string; color: string; children: React.ReactNode }) {
   return (
@@ -144,7 +136,7 @@ export function CheckoutForm() {
         gift: form.isGift
           ? { name: form.recipientName, phone: form.recipientPhone, wrap: form.wrap, note: form.note, hidePrices: form.hidePrices }
           : null,
-        address: { governorate: form.governorate, area: form.area, street: form.street, apartment: form.apartment, date: form.date, notes: form.notes },
+        address: { governorate: form.governorate, area: form.area, street: form.street, apartment: form.apartment, notes: form.notes },
         payment: form.payment,
       });
       if (result.ok) {
@@ -347,17 +339,7 @@ export function CheckoutForm() {
             <Field id="co-apartment" label={checkoutCopy.apartment} optional>
               <input {...input("apartment")} className="field" autoComplete="address-line2" value={form.apartment} onChange={(event) => set("apartment", event.target.value)} />
             </Field>
-            <Field id="co-date" label={checkoutCopy.date} optional>
-              <input
-                {...input("date")}
-                className="field"
-                type="date"
-                min={isoDate(form.governorate === "cairo" || form.governorate === "giza" ? 2 : 3)}
-                value={form.date}
-                onChange={(event) => set("date", event.target.value)}
-              />
-            </Field>
-            <Field id="co-notes" label={checkoutCopy.notes} optional className="sm:col-span-2">
+            <Field id="co-notes" label={checkoutCopy.notes} optional>
               <input {...input("notes")} className="field" placeholder={checkoutCopy.notesPlaceholder} value={form.notes} onChange={(event) => set("notes", event.target.value)} />
             </Field>
           </div>

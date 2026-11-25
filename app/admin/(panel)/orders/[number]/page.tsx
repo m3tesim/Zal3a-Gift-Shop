@@ -75,7 +75,6 @@ export default async function OrderPage({ params }: { params: Promise<{ number: 
             <br />
             {order.address.area}, {dictionary.checkout.govs[order.address.governorate]}
           </p>
-          {order.address.date && <p>Preferred date: <b>{order.address.date}</b></p>}
           {order.address.notes && <p className="rounded-xl bg-cream px-3 py-2">“{order.address.notes}”</p>}
         </Panel>
 

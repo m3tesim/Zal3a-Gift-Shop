@@ -11,7 +11,7 @@ import {
 import { loginBlocked, loginFailed, loginSucceeded } from "@/lib/server/auth";
 import { sendResetEmail, sendVerifyEmail } from "@/lib/server/notify";
 import { authorName, customerReview, upsertReview } from "@/lib/server/reviews-repo";
-import { findOrderByPhone, hasReceived, orderEvents } from "@/lib/server/orders-repo";
+import { claimGuestOrders, findOrderByPhone, hasReceived, orderEvents } from "@/lib/server/orders-repo";
 import { getProduct } from "@/lib/server/catalog-repo";
 import { revalidateStore } from "@/lib/server/revalidate";
 import { EG_MOBILE, cleanPhone, type Order, type OrderEvent } from "@/lib/orders";
@@ -77,6 +77,7 @@ export async function loginCustomerAction(input: { email: string; password: stri
     return { ok: false, error: "login" };
   }
   loginSucceeded(key);
+  if (customer.emailVerified) claimGuestOrders(customer.id, customer.email);
   await startCustomerSession(customer.id);
   return { ok: true };
 }

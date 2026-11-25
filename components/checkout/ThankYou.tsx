@@ -44,7 +44,6 @@ function whatsappText(order: Order) {
     `${dictionary.thanks.from}: ${order.contact.name} · ${order.contact.phone}`,
     `${dictionary.thanks.to}: ${dictionary.checkout.govs[order.address.governorate]}, ${order.address.area}, ${order.address.street}${order.address.apartment ? `, ${order.address.apartment}` : ""}`,
   ];
-  if (order.address.date) rows.push(`${dictionary.checkout.date}: ${order.address.date}`);
   if (order.address.notes) rows.push(`${dictionary.checkout.notes}: ${order.address.notes}`);
   if (order.gift) {
     rows.push(

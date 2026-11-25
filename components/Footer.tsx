@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getDict, type Locale } from "@/lib/i18n";
 import { SOCIALS } from "@/lib/site";
+import { POLICY_PATHS } from "@/lib/policies";
 import { Logo } from "./Logo";
 import { SocialIcon } from "./icons";
 import { LangSwitch } from "./LangSwitch";
@@ -19,7 +20,7 @@ export function Footer({ locale }: { locale: Locale }) {
         />
       </svg>
       <div className="-mt-px bg-sun">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-8 pb-10 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 pt-8 pb-10 sm:grid-cols-2 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="grid gap-4">
             <Logo size="xl" />
             <p className="font-head text-2xl">{dictionary.footer.tagline}</p>
@@ -43,6 +44,15 @@ export function Footer({ locale }: { locale: Locale }) {
               {dictionary.footer.account}
             </Link>
             <LangSwitch className="mt-2 w-fit bg-paper" />
+          </div>
+          <div className="grid content-start gap-3">
+            <h2 className="font-head text-xl">{dictionary.footer.help}</h2>
+            <Link href={`/${locale}/${POLICY_PATHS.shipping}`} className="w-fit font-bold underline-offset-4 hover:underline">
+              {dictionary.footer.shipping}
+            </Link>
+            <Link href={`/${locale}/${POLICY_PATHS.refunds}`} className="w-fit font-bold underline-offset-4 hover:underline">
+              {dictionary.footer.refunds}
+            </Link>
           </div>
           <div className="grid content-start gap-3">
             <h2 className="font-head text-xl">{dictionary.footer.follow}</h2>

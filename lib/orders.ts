@@ -16,7 +16,7 @@ export type CheckoutInput = {
   lines: { id: string; plants: string[]; qty: number }[];
   contact: { name: string; phone: string; email: string };
   gift: null | { name: string; phone: string; wrap: WrapKey; note: string; hidePrices: boolean };
-  address: { governorate: Governorate; area: string; street: string; apartment: string; date: string; notes: string };
+  address: { governorate: Governorate; area: string; street: string; apartment: string; notes: string };
   payment: PaymentKey;
 };
 
