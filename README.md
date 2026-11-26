@@ -59,6 +59,9 @@ email is still created and saved to the admin outbox, just not sent.
 
 ## Hosting notes
 
+- `deploy/setup-server.sh` sets up a fresh Ubuntu server (Node, the app as a service, HTTPS with Caddy, nightly backups to
+  `/var/backups/zal3a`). `deploy/update.sh` ships the latest code from GitHub. `deploy/backup.sh data ~/zal3a-data.tar.gz`
+  packs your local shop so the setup script can restore it on the server.
 - Everything that changes lives in `data/` (or `DATA_DIR`): `zal3a.db` and `uploads/`. **Back that folder up.** It's not in git.
 - It needs a host with a persistent disk (a VPS, Railway/Render/Fly with a volume, etc.). It won't persist on Vercel's
   serverless functions. To move there, swap the SQLite files in `lib/server/` for Postgres and `storage.ts` for blob storage.

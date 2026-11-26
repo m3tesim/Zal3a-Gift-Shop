@@ -1,0 +1,14 @@
+[Unit]
+Description=zal3a shop
+After=network.target
+
+[Service]
+User=zal3a
+WorkingDirectory=/opt/zal3a/app
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm start -- --hostname 127.0.0.1 --port 3000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
